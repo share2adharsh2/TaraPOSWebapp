@@ -1,0 +1,24 @@
+---------------------------------------------------
+Here are the ownership and the certification details
+of the Tara POS 1.0
+---------------------------------------------------
+
+app_name - 						Tara POS
+app_alias - 					tarapos
+app_author_name - 				My Company
+app_author_organizational - 	My Company
+app_author_organization - 		My Company
+app_author_locality - 			My Company
+app_author_state - 				Tamil Nadu
+app_author_country - 			India
+app_password - 					rEVmXbDIUgrd
+app_versionName - 				versionName "1.0"
+app_versionCode - 				100
+
+---------------------------------------------------
+The certification was created by WebIntoApp.com at
+the Sunday 9th of November 2025 12:54:11 AM
+
+https://webintoapp.com
+---------------------------------------------------
+
