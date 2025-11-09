@@ -1,1159 +1,1359 @@
-<!DOCTYPE html>
+<!doctype html> 
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaraPOS Web App</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load jsPDF for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        /* Custom Font and Styling */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-        
-        :root {
-            --color-gold: #FFD700;
-            --color-green-dark: #10B981; /* Tailwind's emerald-500/600 */
-            --color-green-soft: #ECFDF5; /* Tailwind's emerald-50 */
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TaraPOS — final (WebView compatible)</title>
 
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, var(--color-green-soft) 0%, #FFFFFF 100%);
-        }
+  <!-- Static Tailwind (prebuilt) - works offline / file:// -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-        /* Branding Text Style */
-        .logo-text {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem; /* Larger text for logo */
-            color: var(--color-gold);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-        }
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-        /* Tile Styles for Mobile Dashboard */
-        .tile {
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            cursor: pointer;
-            border: 2px solid rgba(255, 215, 0, 0.5);
-        }
-        .tile:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-        }
-        .tile-icon {
-            color: var(--color-green-dark);
-        }
+  <style>
 
-        /* General UI Styling */
-        .btn-primary {
-            background-color: var(--color-green-dark);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
-        }
-        .btn-primary:hover {
-            background-color: #059669; /* Slightly darker green */
-        }
-    </style>
+:root {
+  --vh: 1vh;
+}
+body {
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+window.addEventListener('resize', () => {
+  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+});
+
+    #home-btn-fixed {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  padding: 6px 10px;
+  font-size: 18px;
+}
+
+    :root{ --green:#10B981; --gold:#FFD700; --card:#fff; }
+    html,body{height:100%; margin:0; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+    body{ background: linear-gradient(180deg,#f8fff8 0%, #ffffff 100%); color:#0f172a; }
+    .logo{ font-family:"Playfair Display", serif; color:var(--gold); font-size:1.6rem; font-weight:600; }
+    .tile{ border-radius:12px; padding:18px; background:var(--card); box-shadow:0 8px 18px rgba(2,6,23,0.06); border:1px solid rgba(16,185,129,0.06); cursor:pointer; transition:transform .12s ease; }
+    .tile:hover{ transform:translateY(-6px); }
+    .btn-primary{ background:var(--green); color:#fff; padding:.5rem .8rem; border-radius:10px; display:inline-block; }
+    .card{ background:var(--card); border-radius:12px; padding:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.04); }
+    .small-muted{ font-size:.85rem; color:#6b7280; }
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(15,23,42,0.55); display:flex; align-items:center; justify-content:center; z-index:80; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:80px; background:var(--green); color:white; padding:10px 14px; border-radius:8px; display:none; z-index:90; }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
+    /* small helper so qr images in modal look tidy */
+    .qr-thumb{ width:80px; height:80px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
+    header {
+      margin-left: 50px;
+      margin-top: 10px;
+    }
+/* 🏠 Larger, clear Home button */
+#home-btn {
+  position: relative;
+  top: -10px;
+  left: -35px;
+  font-size: 32px !important;   /* increased size */
+  background: none;
+  border: none;
+  color: #0f172a;
+  cursor: pointer;
+  z-index: 99;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+
+
+header {
+  margin-left: 25px !important;
+  margin-top: -20px !important;
+}
+
+
+  </style>
 </head>
-<body class="p-4 sm:p-6 pb-20">
-    <!-- Header/Branding - Includes Home Navigation -->
-    <header class="mb-6 flex flex-col items-center relative">
-        <!-- Home Button for non-home pages -->
-        <button id="home-nav-button" onclick="navigate('home')" 
-                class="absolute top-2 left-0 p-2 text-green-600 hover:text-green-800 transition-opacity hidden sm:block">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-        </button>
-
-        <!-- Logo/Title - ALWAYS clickable to go Home -->
-        <a href="#" onclick="navigate('home'); return false;" class="block text-center mb-1">
-            <h1 class="logo-text leading-none">TARA</h1>
-            <h2 class="text-xs font-semibold text-gray-700 uppercase tracking-wider">Tara Home Products POS</h2>
-        </a>
-        <hr class="w-1/3 my-4 border-gray-300">
-    </header>
-
-    <!-- Main Content Area -->
-    <main id="app-container" class="max-w-4xl mx-auto">
-        <!-- Views will be dynamically inserted here -->
-    </main>
-
-    <!-- Floating Message Box (for alerts/confirmations) -->
-    <div id="message-box" class="fixed top-0 left-0 right-0 p-4 bg-green-500 text-white text-center transition-transform duration-300 transform -translate-y-full z-50 rounded-b-lg shadow-xl">
-        A message goes here.
+<body>
+  <button id="home-btn-fixed" title="Home"></button>
+  <div class="max-w-3xl mx-auto p-4">
+<header class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-3">
+    <!-- 🏠 Home Button in Header -->
+    <button id="home-btn" title="Home" class="text-2xl hover:text-green-600 transition">🏠</button>
+    <div>
+      <div class="logo">TARA</div>
+      <div class="small-muted">Tara Home Products • POS</div>
     </div>
-
-    <!-- Navigation Footer (Fixed for Mobile) -->
-    <footer id="nav-footer" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl p-2 flex justify-around sm:hidden z-40">
-        <!-- Navigation buttons for mobile will be added here -->
-    </footer>
-
-    <script>
-        // --- GLOBAL STATE AND CONSTANTS ---
-        const COMPANY_NAME = "Tara Home Products";
-        const RUPEE = '₹';
-        
-        let currentState = {
-            activeView: 'home',
-            products: [],
-            customers: [],
-            invoices: [],
-            settings: {
-                companyInfo: {
-                    fssai: '21221191000109',
-                    address: 'No. 123, Gandhi Nagar, Chennai - 600001',
-                    phone: '+91 98765 43210',
-                    name: COMPANY_NAME
-                },
-                googleSheetLink: ''
-            },
-            currentSale: {
-                customerName: '',
-                cart: [],
-                total: 0
-            }
-        };
-
-        const DEFAULT_PRODUCTS = [
-            { id: 'p1', name: 'Mango Pickle', weight: '250g', price: 100, details: 'Sweet and Tangy Mango Pickle' },
-            { id: 'p2', name: 'Garlic Pickle', weight: '250g', price: 100, details: 'Spicy Garlic Pickle, perfect with rice' },
-            { id: 'p3', name: 'Prawn Pickle', weight: '250g', price: 100, details: 'Authentic South Indian Prawn Pickle' },
-            { id: 'p4', name: 'Lemon Pickle', weight: '250g', price: 100, details: 'Traditional Homemade Lemon Pickle' }
-        ];
-
-        // --- UTILITY FUNCTIONS ---
-
-        /** Shows a temporary toast message instead of alert() */
-        function showMessage(text) {
-            const box = document.getElementById('message-box');
-            box.textContent = text;
-            box.classList.remove('-translate-y-full');
-            setTimeout(() => {
-                box.classList.add('-translate-y-full');
-            }, 3000);
-        }
-
-        /** Formats a number to Indian Rupees (₹) */
-        function formatCurrency(amount) {
-            // Using Intl.NumberFormat for robust currency display (used in HTML)
-            return new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-                minimumFractionDigits: 2,
-            }).format(Number(amount));
-        }
-
-        /** Generates a unique ID */
-        function generateId() {
-            return 'id-' + Date.now().toString(36) + Math.random().toString(36).substring(2);
-        }
-
-        /** Gets current date/time string for invoice */
-        function getCurrentDateTime() {
-            return new Date().toLocaleString('en-IN', {
-                dateStyle: 'short',
-                timeStyle: 'short'
-            });
-        }
-
-        // --- LOCAL STORAGE PERSISTENCE ---
-
-        function loadState() {
-            const storedProducts = localStorage.getItem('tara_products');
-            const storedCustomers = localStorage.getItem('tara_customers');
-            const storedInvoices = localStorage.getItem('tara_invoices');
-            const storedSettings = localStorage.getItem('tara_settings');
-
-            // Load products or use default and save if not found
-            if (storedProducts) {
-                currentState.products = JSON.parse(storedProducts);
-            } else {
-                currentState.products = DEFAULT_PRODUCTS.map(p => ({ ...p, id: generateId() }));
-                saveProducts();
-            }
-
-            // Load other data
-            if (storedCustomers) currentState.customers = JSON.parse(storedCustomers);
-            if (storedInvoices) currentState.invoices = JSON.parse(storedInvoices);
-            if (storedSettings) currentState.settings = { ...currentState.settings, ...JSON.parse(storedSettings) };
-
-            // Ensure company name is always correct
-            currentState.settings.companyInfo.name = COMPANY_NAME;
-        }
-
-        function saveProducts() {
-            localStorage.setItem('tara_products', JSON.stringify(currentState.products));
-        }
-
-        function saveCustomers() {
-            localStorage.setItem('tara_customers', JSON.stringify(currentState.customers));
-        }
-
-        function saveInvoices() {
-            localStorage.setItem('tara_invoices', JSON.stringify(currentState.invoices));
-        }
-
-        function saveSettings() {
-            localStorage.setItem('tara_settings', JSON.stringify(currentState.settings));
-            // Ensure company name is always correct
-            currentState.settings.companyInfo.name = COMPANY_NAME;
-        }
-
-        // --- NAVIGATION AND VIEW RENDERING ---
-
-        function navigate(viewName) {
-            currentState.activeView = viewName;
-            renderView();
-        }
-
-        function renderView() {
-            const container = document.getElementById('app-container');
-            container.innerHTML = '';
-            let content;
-
-            switch (currentState.activeView) {
-                case 'home':
-                    content = renderHomeView();
-                    break;
-                case 'products':
-                    content = renderProductsView();
-                    break;
-                case 'sales':
-                    content = renderSalesView();
-                    break;
-                case 'invoices':
-                    content = renderInvoicesView();
-                    break;
-                case 'reports':
-                    content = renderReportsView();
-                    break;
-                case 'customers':
-                    content = renderCustomersView();
-                    break;
-                case 'settings':
-                    content = renderSettingsView();
-                    break;
-                default:
-                    content = renderHomeView();
-            }
-            container.appendChild(content);
-
-            // Update Home Button visibility
-            const homeButton = document.getElementById('home-nav-button');
-            if (homeButton) {
-                if (currentState.activeView === 'home') {
-                    homeButton.classList.add('hidden');
-                } else {
-                    homeButton.classList.remove('hidden');
-                }
-            }
-            // Re-render mobile navigation footer
-            renderMobileNav();
-        }
-
-        function renderMobileNav() {
-            const navFooter = document.getElementById('nav-footer');
-            if (navFooter.classList.contains('hidden')) return; // Desktop/Tablet size
-
-            const navItems = [
-                { name: 'Home', view: 'home', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-                { name: 'Sale', view: 'sales', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8a6 6 0 00-6 6v7h12v-7a6 6 0 00-6-6z' },
-                { name: 'Products', view: 'products', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m4 4v10l8 4m0-10v10' },
-                { name: 'Invoices', view: 'invoices', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h.01M9 15h.01' },
-            ];
-
-            navFooter.innerHTML = navItems.map(item => `
-                <button onclick="navigate('${item.view}')" class="flex flex-col items-center p-1 text-xs font-medium ${currentState.activeView === item.view ? 'text-green-600' : 'text-gray-500 hover:text-green-500'} transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${item.icon}"></path></svg>
-                    <span>${item.name}</span>
-                </button>
-            `).join('');
-        }
-
-        // --- 1. HOME / DASHBOARD VIEW ---
-
-        function renderHomeView() {
-            const homeDiv = document.createElement('div');
-            homeDiv.className = 'py-4';
-
-            const tiles = [
-                { name: 'New Sale', view: 'sales', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8a6 6 0 00-6 6v7h12v-7a6 6 0 00-6-6z', bgColor: 'bg-green-100', iconColor: 'text-green-600' },
-                { name: 'Products', view: 'products', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m4 4v10l8 4m0-10v10', bgColor: 'bg-yellow-50', iconColor: 'text-yellow-600' },
-                { name: 'Invoices', view: 'invoices', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h.01M9 15h.01', bgColor: 'bg-green-100', iconColor: 'text-green-600' },
-                { name: 'Reports', view: 'reports', icon: 'M7 12l3-3 3 3 4-4M3 21h18a2 2 0 002-2V5a2 2 0 00-2-2H3a2 2 0 00-2 2v14a2 2 0 002 2z', bgColor: 'bg-yellow-50', iconColor: 'text-yellow-600' },
-                { name: 'Customers', view: 'customers', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20v-2a3 3 0 00-5.356-1.857M10 12V5a2 2 0 00-2-2H4a2 2 0 00-2 2v7a2 2 0 002 2h6zm-5 4h.01M17 16h.01', bgColor: 'bg-green-100', iconColor: 'text-green-600' },
-                { name: 'Settings', view: 'settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.82 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.82 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.82-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.82-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z', bgColor: 'bg-green-100', iconColor: 'text-green-600' },
-            ];
-
-            homeDiv.innerHTML = `
-                <h3 class="text-xl font-semibold mb-4 text-gray-800">Dashboard</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
-                    ${tiles.map(tile => `
-                        <div onclick="navigate('${tile.view}')" class="tile ${tile.bgColor} p-4 rounded-xl flex flex-col items-center justify-center text-center">
-                            <svg class="w-8 h-8 mb-2 ${tile.iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${tile.icon}"></path></svg>
-                            <span class="font-medium text-sm text-gray-700">${tile.name}</span>
-                        </div>
-                    `).join('')}
-                </div>
-
-                <!-- Recent Invoices -->
-                <h3 class="text-xl font-semibold mb-3 text-gray-800">Recent Sales</h3>
-                ${renderInvoiceList(currentState.invoices.slice(-5).reverse())}
-            `;
-            return homeDiv;
-        }
-
-        // --- 2. PRODUCTS VIEW ---
-
-        function renderProductsView() {
-            const productDiv = document.createElement('div');
-            productDiv.className = 'py-4';
-
-            productDiv.innerHTML = `
-                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Product List</h3>
-                <button onclick="openProductModal()" class="btn-primary mb-6 flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Add New Product
-                </button>
-                <div id="product-list-container" class="space-y-4">
-                    ${currentState.products.map(p => `
-                        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between border-l-4 border-green-500">
-                            <div class="flex-grow">
-                                <p class="text-lg font-bold text-gray-800">${p.name}</p>
-                                <p class="text-sm text-gray-500">${p.weight} | ${formatCurrency(p.price)}</p>
-                                <p class="text-xs text-gray-400">${p.details || 'No details'}</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button onclick="openProductModal('${p.id}')" class="p-2 text-green-600 hover:text-green-800 rounded-full bg-green-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
-                                <button onclick="deleteProduct('${p.id}')" class="p-2 text-red-600 hover:text-red-800 rounded-full bg-red-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('') || '<p class="text-gray-500 p-4 bg-white rounded-xl">No products found. Add your first product!</p>'}
-                </div>
-                ${renderProductModal()}
-            `;
-            return productDiv;
-        }
-
-        function openProductModal(productId = null) {
-            const modal = document.getElementById('product-modal');
-            const form = document.getElementById('product-form');
-            form.reset();
-            document.getElementById('product-id').value = productId || '';
-
-            if (productId) {
-                const product = currentState.products.find(p => p.id === productId);
-                if (product) {
-                    document.getElementById('product-name').value = product.name;
-                    document.getElementById('product-weight').value = product.weight;
-                    document.getElementById('product-price').value = product.price;
-                    document.getElementById('product-details').value = product.details || '';
-                    document.getElementById('modal-title').textContent = 'Edit Product';
-                }
-            } else {
-                document.getElementById('modal-title').textContent = 'Add New Product';
-            }
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.add('hidden');
-        }
-
-        function saveProduct(event) {
-            event.preventDefault();
-            const id = document.getElementById('product-id').value;
-            const name = document.getElementById('product-name').value.trim();
-            const weight = document.getElementById('product-weight').value.trim();
-            const price = parseFloat(document.getElementById('product-price').value);
-            const details = document.getElementById('product-details').value.trim();
-
-            if (!name || isNaN(price) || price <= 0) {
-                showMessage('Please enter a valid name and price.');
-                return;
-            }
-
-            if (id) {
-                // Edit
-                const index = currentState.products.findIndex(p => p.id === id);
-                if (index > -1) {
-                    currentState.products[index] = { ...currentState.products[index], name, weight, price, details };
-                    showMessage('Product updated successfully!');
-                }
-            } else {
-                // Add
-                const newProduct = { id: generateId(), name, weight, price, details };
-                currentState.products.push(newProduct);
-                showMessage('Product added successfully!');
-            }
-
-            saveProducts();
-            closeProductModal();
-            renderView(); // Re-render the products list
-        }
-
-        function deleteProduct(id) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                currentState.products = currentState.products.filter(p => p.id !== id);
-                saveProducts();
-                showMessage('Product deleted.');
-                renderView();
-            }
-        }
-
-        function renderProductModal() {
-            return `
-                <div id="product-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-                    <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md">
-                        <h4 id="modal-title" class="text-xl font-bold mb-4 text-gray-800">Add New Product</h4>
-                        <form id="product-form" onsubmit="saveProduct(event)">
-                            <input type="hidden" id="product-id">
-                            <div class="mb-4">
-                                <label for="product-name" class="block text-sm font-medium text-gray-700">Name</label>
-                                <input type="text" id="product-name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label for="product-weight" class="block text-sm font-medium text-gray-700">Weight/Unit</label>
-                                    <input type="text" id="product-weight" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border" value="250g">
-                                </div>
-                                <div>
-                                    <label for="product-price" class="block text-sm font-medium text-gray-700">Price (${RUPEE})</label>
-                                    <input type="number" id="product-price" required step="0.01" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                                </div>
-                            </div>
-                             <div class="mb-4">
-                                <label for="product-details" class="block text-sm font-medium text-gray-700">Details/Description</label>
-                                <textarea id="product-details" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border"></textarea>
-                            </div>
-                            <div class="flex justify-end space-x-3 mt-6">
-                                <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancel</button>
-                                <button type="submit" class="px-4 py-2 text-sm font-medium bg-green-500 text-white rounded-md hover:bg-green-600">Save</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- 3. SALES VIEW ---
-
-        function updateCartTotal() {
-            let total = currentState.currentSale.cart.reduce((sum, item) => {
-                // Use temporary price if available, otherwise use default
-                const priceToUse = item.tempPrice !== undefined ? item.tempPrice : item.price;
-                return sum + (priceToUse * item.quantity);
-            }, 0);
-            currentState.currentSale.total = total;
-
-            const totalEl = document.getElementById('sale-total-amount');
-            if (totalEl) totalEl.textContent = formatCurrency(total);
-        }
-
-        function updateCart(productId, action, value = 0) {
-            const cartItemIndex = currentState.currentSale.cart.findIndex(item => item.productId === productId);
-
-            if (cartItemIndex === -1) {
-                // Should only happen on initial add
-                const product = currentState.products.find(p => p.id === productId);
-                if (!product) return;
-                currentState.currentSale.cart.push({
-                    productId: product.id,
-                    name: product.name,
-                    weight: product.weight,
-                    price: product.price,
-                    tempPrice: product.price, // Initialize tempPrice
-                    quantity: 1
-                });
-            } else {
-                const item = currentState.currentSale.cart[cartItemIndex];
-                if (action === 'add') {
-                    item.quantity += 1;
-                } else if (action === 'subtract') {
-                    item.quantity -= 1;
-                    if (item.quantity <= 0) {
-                        currentState.currentSale.cart.splice(cartItemIndex, 1);
-                    }
-                } else if (action === 'delete') {
-                    currentState.currentSale.cart.splice(cartItemIndex, 1);
-                } else if (action === 'price_override') {
-                    const priceValue = parseFloat(value);
-                    item.tempPrice = isNaN(priceValue) || priceValue <= 0 ? item.price : priceValue;
-                } else if (action === 'set_quantity') {
-                    const qtyValue = parseInt(value);
-                    if (isNaN(qtyValue) || qtyValue <= 0) {
-                        currentState.currentSale.cart.splice(cartItemIndex, 1);
-                    } else {
-                        item.quantity = qtyValue;
-                    }
-                }
-            }
-            updateCartTotal();
-            renderView(); // Re-render the sales view to update cart display
-        }
-
-        function handleProductSelection() {
-            const select = document.getElementById('product-select');
-            const productId = select.value;
-            if (productId) {
-                updateCart(productId, 'add');
-                select.value = ''; // Reset select
-            }
-        }
-
-        function startNewSale() {
-            currentState.currentSale = {
-                customerName: '',
-                cart: [],
-                total: 0
-            };
-            const customerInput = document.getElementById('customer-name-input');
-            if(customerInput) customerInput.value = '';
-            renderView();
-            showMessage('New sale started!');
-        }
-
-        function generateInvoice() {
-            const customerNameInput = document.getElementById('customer-name-input');
-            const customerName = customerNameInput ? customerNameInput.value.trim() : 'Cash Customer';
-            
-            if (currentState.currentSale.cart.length === 0) {
-                showMessage('Cart is empty. Please add products to generate an invoice.');
-                return;
-            }
-
-            // 1. Save/Update Customer
-            if (customerName && customerName !== 'Cash Customer') {
-                const existingCustomer = currentState.customers.find(c => c.name.toLowerCase() === customerName.toLowerCase());
-                if (!existingCustomer) {
-                    currentState.customers.push({ id: generateId(), name: customerName, phone: '', place: '', details: '' });
-                    saveCustomers();
-                }
-                currentState.currentSale.customerName = customerName;
-            } else {
-                currentState.currentSale.customerName = 'Cash Customer';
-            }
-
-            // 2. Create Invoice Record
-            const invoice = {
-                id: generateId(),
-                invoiceNumber: (currentState.invoices.length + 1).toString().padStart(4, '0'),
-                date: getCurrentDateTime(),
-                customerName: currentState.currentSale.customerName,
-                items: JSON.parse(JSON.stringify(currentState.currentSale.cart)), // Deep copy cart
-                total: currentState.currentSale.total,
-            };
-
-            // 3. Save Invoice
-            currentState.invoices.push(invoice);
-            saveInvoices();
-
-            // 4. Generate PDF
-            generateInvoicePDF(invoice);
-
-            // 5. Reset Sale
-            startNewSale();
-            navigate('invoices');
-            showMessage(`Invoice #${invoice.invoiceNumber} created and downloaded!`);
-        }
-
-        function handleCustomerInput(inputEl) {
-            currentState.currentSale.customerName = inputEl.value;
-            const datalist = document.getElementById('customer-suggestions');
-            const filter = inputEl.value.toLowerCase();
-            
-            datalist.innerHTML = currentState.customers
-                .filter(c => c.name.toLowerCase().includes(filter))
-                .map(c => `<option value="${c.name}">`)
-                .join('');
-        }
-
-        function renderSalesView() {
-            const salesDiv = document.createElement('div');
-            salesDiv.className = 'py-4';
-
-            // Customer Input & Suggestions
-            const customerInputSection = `
-                <div class="mb-6 bg-white p-4 rounded-xl shadow">
-                    <label for="customer-name-input" class="block text-sm font-medium text-gray-700 mb-1">Customer Name (Suggests from list)</label>
-                    <input type="text" id="customer-name-input" oninput="handleCustomerInput(this)" list="customer-suggestions" value="${currentState.currentSale.customerName}"
-                           class="w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border text-lg" placeholder="Enter Customer Name">
-                    <datalist id="customer-suggestions"></datalist>
-                </div>
-            `;
-
-            // Product Selection
-            const productSelectionSection = `
-                <div class="mb-6 bg-white p-4 rounded-xl shadow">
-                    <label for="product-select" class="block text-sm font-medium text-gray-700 mb-1">Select Product to Add</label>
-                    <select id="product-select" onchange="handleProductSelection()" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border text-lg">
-                        <option value="">-- Choose a Product --</option>
-                        ${currentState.products.map(p => `<option value="${p.id}">${p.name} (${formatCurrency(p.price)})</option>`).join('')}
-                    </select>
-                </div>
-            `;
-
-            // Cart Display
-            const cartDisplaySection = `
-                <div class="mb-6">
-                    <h4 class="text-xl font-semibold mb-3 text-gray-800">Cart (${currentState.currentSale.cart.length} items)</h4>
-                    <div id="cart-list" class="space-y-3">
-                        ${currentState.currentSale.cart.length > 0 ? currentState.currentSale.cart.map(item => {
-                            const currentPrice = item.tempPrice !== undefined ? item.tempPrice : item.price;
-                            return `
-                            <div class="bg-white p-3 rounded-lg shadow flex flex-col sm:flex-row sm:items-center justify-between border-l-4 border-yellow-500">
-                                <div class="flex-grow mb-2 sm:mb-0">
-                                    <p class="font-bold text-gray-800">${item.name}</p>
-                                    <p class="text-xs text-gray-500">${item.weight} @ ${formatCurrency(item.price)}</p>
-                                </div>
-                                
-                                <!-- Quantity Controls -->
-                                <div class="flex items-center space-x-2 mb-2 sm:mb-0 sm:mr-4">
-                                    <button onclick="updateCart('${item.productId}', 'subtract')" class="p-1 w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">-</button>
-                                    <input type="number" onchange="updateCart('${item.productId}', 'set_quantity', this.value)" value="${item.quantity}" min="1" class="w-12 text-center border rounded-md p-1">
-                                    <button onclick="updateCart('${item.productId}', 'add')" class="p-1 w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">+</button>
-                                </div>
-
-                                <!-- Price Override & Subtotal -->
-                                <div class="flex flex-col items-end">
-                                    <input type="number" onchange="updateCart('${item.productId}', 'price_override', this.value)" value="${currentPrice}" step="0.01" placeholder="Override Price" 
-                                           class="w-24 text-right border rounded-md p-1 text-sm mb-1 bg-yellow-50 focus:bg-yellow-100">
-                                    <p class="font-semibold text-right text-base text-gray-700">${formatCurrency(currentPrice * item.quantity)}</p>
-                                </div>
-                            </div>
-                            `;
-                        }).join('') : '<p class="text-gray-500 p-4 bg-white rounded-xl">Add products using the selector above.</p>'}
-                    </div>
-                </div>
-            `;
-
-            // Total and Actions
-            const totalAndActions = `
-                <div class="sticky bottom-0 sm:relative bg-white p-4 rounded-t-xl sm:rounded-xl shadow-2xl border-t-4 border-green-500 mt-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-xl font-bold text-gray-700">TOTAL:</span>
-                        <span id="sale-total-amount" class="text-2xl font-extrabold text-green-600">${formatCurrency(currentState.currentSale.total)}</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="startNewSale()" class="p-3 text-sm font-medium border border-red-400 text-red-600 rounded-xl hover:bg-red-50 transition-colors">
-                            <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            New Sale
-                        </button>
-                        <button onclick="generateInvoice()" class="p-3 text-sm font-medium btn-primary rounded-xl">
-                            <svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Generate Invoice
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            salesDiv.innerHTML = `
-                <h3 class="text-2xl font-semibold mb-4 text-gray-800">New Sale (Cart)</h3>
-                ${customerInputSection}
-                ${productSelectionSection}
-                ${cartDisplaySection}
-                ${totalAndActions}
-            `;
-
-            // Ensure total is calculated on load
-            updateCartTotal();
-
-            return salesDiv;
-        }
-
-
-        // --- 4. INVOICES VIEW ---
-
-        function renderInvoiceList(invoices) {
-            return `
-                <div class="space-y-3">
-                    ${invoices.length > 0 ? invoices.map(i => `
-                        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between border-l-4 border-green-500">
-                            <div>
-                                <p class="text-lg font-bold text-gray-800">#${i.invoiceNumber}</p>
-                                <p class="text-sm text-gray-600">${i.customerName}</p>
-                                <p class="text-xs text-gray-500">${i.date}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xl font-extrabold text-green-600">${formatCurrency(i.total)}</p>
-                                <div class="flex space-x-2 mt-1">
-                                    <button onclick="generateInvoicePDF(${JSON.stringify(i).replace(/"/g, '&quot;')})" class="text-sm text-green-500 hover:text-green-700 font-medium">PDF</button>
-                                    <button onclick="shareInvoiceWhatsApp(${JSON.stringify(i).replace(/"/g, '&quot;')})" class="text-sm text-green-500 hover:text-green-700 font-medium">WhatsApp</button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('') : '<p class="text-gray-500 p-4 bg-white rounded-xl">No invoices recorded yet.</p>'}
-                </div>
-            `;
-        }
-
-        function renderInvoicesView() {
-            const invoicesDiv = document.createElement('div');
-            invoicesDiv.className = 'py-4';
-
-            // Filter/Sort controls (Basic)
-            // ... (optional: future filter/search logic)
-
-            invoicesDiv.innerHTML = `
-                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Sales History / Invoices</h3>
-                ${renderInvoiceList(currentState.invoices.slice().reverse())}
-            `;
-            return invoicesDiv;
-        }
-
-        // --- PDF Generation and WhatsApp Share ---
-
-        function generateInvoicePDF(invoice) {
-            // Using jsPDF from window object
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const company = currentState.settings.companyInfo;
-            const margin = 15;
-            let y = margin;
-            const lineHeight = 7;
-            const colWidths = [50, 25, 30, 30]; // Name, Qty, Price, Total
-
-            // --- Header (Green and Gold Theme) ---
-            doc.setFillColor(33, 150, 83); // Dark Green
-            doc.rect(0, 0, 210, 30, 'F');
-            
-            // Logo Text (Tara) - Gold
-            // NOTE: jsPDF standard fonts don't support custom fonts, using default bold
-            doc.setFont('times', 'bold');
-            doc.setFontSize(28);
-            doc.setTextColor(255, 215, 0); // Gold
-            doc.text("Tara", margin, y + 5);
-
-            // Company Name and Tagline
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
-            doc.setTextColor(255, 255, 255); // White
-            doc.text(company.name, margin, y + 14);
-            
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.text("Homemade Delicacies", margin, y + 20);
-            y += 35; 
-
-            // --- Invoice Details ---
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(16);
-            doc.setTextColor(0, 0, 0); // Black
-            doc.text("SALES INVOICE", margin, y);
-            y += lineHeight;
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.text(`Invoice No: ${invoice.invoiceNumber}`, margin, y);
-            doc.text(`Date: ${invoice.date}`, 150, y);
-            y += lineHeight;
-            doc.text(`Customer: ${invoice.customerName}`, margin, y);
-            y += lineHeight * 1.5;
-
-            // --- Items Table Header ---
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(10);
-            doc.setFillColor(220, 220, 220); // Light Gray
-            doc.rect(margin, y, 180, lineHeight, 'F');
-            doc.text("Product Name", margin + 2, y + lineHeight * 0.7);
-            doc.text("Qty", margin + colWidths[0] + 2, y + lineHeight * 0.7);
-            doc.text("Price", margin + colWidths[0] + colWidths[1] + 2, y + lineHeight * 0.7);
-            doc.text("Total", margin + colWidths[0] + colWidths[1] + colWidths[2] + 2, y + lineHeight * 0.7);
-            y += lineHeight;
-
-            // --- Items Table Rows ---
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            invoice.items.forEach(item => {
-                const itemPrice = item.tempPrice !== undefined ? item.tempPrice : item.price;
-                doc.text(`${item.name} (${item.weight})`, margin + 2, y + lineHeight * 0.7);
-                doc.text(item.quantity.toString(), margin + colWidths[0] + 2, y + lineHeight * 0.7);
-                
-                // FIX: Using "Rs. " as a reliable string prefix instead of the Rupee symbol (₹) 
-                // to prevent the '1' or box error in basic jsPDF fonts.
-                const formattedPrice = `Rs. ${Number(itemPrice).toFixed(2)}`;
-                const formattedTotal = `Rs. ${Number(itemPrice * item.quantity).toFixed(2)}`;
-                
-                doc.text(formattedPrice, margin + colWidths[0] + colWidths[1] + 2, y + lineHeight * 0.7);
-                doc.text(formattedTotal, margin + colWidths[0] + colWidths[1] + colWidths[2] + 2, y + lineHeight * 0.7);
-                y += lineHeight;
-            });
-            y += lineHeight;
-
-            // --- Total Summary ---
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.setTextColor(0, 0, 0); // Black color for Total text
-            
-            // Total Label - positioned to the left of the Total Amount
-            doc.text("Total Amount (Incl. all taxes):", margin + colWidths[0] + colWidths[1] - 5, y); 
-            
-            // Total Amount - positioned right and wider to prevent overlap
-            doc.setFontSize(14);
-            doc.setTextColor(33, 150, 83); // Green color for amount
-            // FIX: Using "Rs. " as reliable fallback
-            const finalTotalFormatted = `Rs. ${Number(invoice.total).toFixed(2)}`; 
-            doc.text(finalTotalFormatted, 180, y, { align: 'right' }); 
-            
-            y += lineHeight * 2;
-
-            // --- Footer / Company Info ---
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100); // Gray
-
-            // Information from image/settings (FSSAI, Address, Phone)
-            doc.text(`FSSAI No: ${company.fssai}`, margin, y);
-            y += lineHeight * 0.8;
-            doc.text(`Address: ${company.address}`, margin, y, { maxWidth: 180 });
-            y += lineHeight * 0.8;
-            doc.text(`Contact: ${company.phone}`, margin, y);
-            y += lineHeight * 1.5;
-            
-            doc.text("Thank you for your business!", margin, y);
-            
-            // Save PDF
-            doc.save(`Invoice_${invoice.invoiceNumber}_${invoice.customerName}.pdf`);
-        }
-
-        function shareInvoiceWhatsApp(invoice) {
-            const companyName = currentState.settings.companyInfo.name;
-            const message = `*${companyName} Invoice*\n` +
-                            `Invoice No: ${invoice.invoiceNumber}\n` +
-                            `Customer: ${invoice.customerName}\n` +
-                            `Date: ${invoice.date}\n\n` +
-                            `*Order Details:*\n` +
-                            invoice.items.map(item => {
-                                const price = item.tempPrice !== undefined ? item.tempPrice : item.price;
-                                return `- ${item.name} x ${item.quantity} (${formatCurrency(price * item.quantity)})`;
-                            }).join('\n') +
-                            `\n\n*TOTAL AMOUNT DUE: ${formatCurrency(invoice.total)}*\n\n` +
-                            `Thank you for shopping with us!`;
-
-            const encodedMessage = encodeURIComponent(message);
-            // Uses web.whatsapp.com for desktop compatibility and mobile deep linking
-            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-        }
-
-        // --- 5. REPORTS VIEW ---
-
-        function renderReportsView() {
-            const reportsDiv = document.createElement('div');
-            reportsDiv.className = 'py-4';
-            
-            const salesData = calculateReportData();
-            
-            const topProductsHtml = salesData.topSellingProducts.slice(0, 5).map(p => `
-                <li class="flex justify-between items-center py-1 border-b">
-                    <span class="text-sm text-gray-700">${p.name}</span>
-                    <span class="font-medium text-green-600">${p.totalQuantity} units</span>
-                </li>
-            `).join('') || '<p class="text-gray-500">No sales data.</p>';
-
-            reportsDiv.innerHTML = `
-                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Sales Reports</h3>
-                
-                <!-- Key Metrics - Layout Fixed for better responsiveness -->
-                <div class="flex flex-col sm:flex-row gap-4 mb-8">
-                    <!-- Total Revenue Card -->
-                    <div class="bg-white p-4 rounded-xl shadow border-l-4 border-green-500 flex-1">
-                        <p class="text-sm text-gray-500">Total Revenue</p>
-                        <p class="text-xl font-bold text-green-700 break-words">${formatCurrency(salesData.totalRevenue)}</p>
-                    </div>
-                    <!-- Total Invoices Card -->
-                    <div class="bg-white p-4 rounded-xl shadow border-l-4 border-yellow-500 flex-1">
-                        <p class="text-sm text-gray-500">Total Invoices</p>
-                        <p class="text-2xl font-bold text-yellow-700">${salesData.totalInvoices}</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Daily/Weekly/Monthly Sales -->
-                    <div class="bg-white p-4 rounded-xl shadow">
-                        <h4 class="text-lg font-bold mb-3 text-gray-800">Sales Trends (Last 7 Days)</h4>
-                        <div class="space-y-2">
-                            ${Object.entries(salesData.dailySales).slice(-7).reverse().map(([date, total]) => `
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="text-gray-600">${date}</span>
-                                    <span class="font-semibold">${formatCurrency(total)}</span>
-                                </div>
-                            `).join('') || '<p class="text-gray-500">No daily sales data.</p>'}
-                        </div>
-                    </div>
-                    
-                    <!-- Top Selling Products -->
-                    <div class="bg-white p-4 rounded-xl shadow">
-                        <h4 class="text-lg font-bold mb-3 text-gray-800">Top 5 Selling Products (Units)</h4>
-                        <ul class="divide-y divide-gray-100">
-                            ${topProductsHtml}
-                        </ul>
-                    </div>
-                </div>
-            `;
-            return reportsDiv;
-        }
-
-        function calculateReportData() {
-            let totalRevenue = 0;
-            let productSales = {}; // { productId: { name, totalQuantity } }
-            let dailySales = {}; // { dateString: totalRevenue }
-
-            currentState.invoices.forEach(invoice => {
-                totalRevenue += invoice.total;
-
-                // Daily Sales
-                const dateKey = new Date(invoice.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-                dailySales[dateKey] = (dailySales[dateKey] || 0) + invoice.total;
-
-                // Product Sales
-                invoice.items.forEach(item => {
-                    if (!productSales[item.productId]) {
-                        productSales[item.productId] = {
-                            name: item.name,
-                            totalQuantity: 0
-                        };
-                    }
-                    productSales[item.productId].totalQuantity += item.quantity;
-                });
-            });
-
-            const topSellingProducts = Object.values(productSales).sort((a, b) => b.totalQuantity - a.totalQuantity);
-
-            return {
-                totalRevenue,
-                totalInvoices: currentState.invoices.length,
-                dailySales,
-                topSellingProducts
-            };
-        }
-
-        // --- 6. CUSTOMERS VIEW ---
-
-        function renderCustomersView() {
-            const customersDiv = document.createElement('div');
-            customersDiv.className = 'py-4';
-
-            customersDiv.innerHTML = `
-                <h3 class="text-2xl font-semibold mb-4 text-gray-800">Customer Records</h3>
-                <button onclick="openCustomerModal()" class="btn-primary mb-6 flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 10V6"></path></svg>
-                    Add New Customer
-                </button>
-                <div id="customer-list-container" class="space-y-4">
-                    ${currentState.customers.map(c => `
-                        <div class="bg-white p-4 rounded-xl shadow flex items-center justify-between border-l-4 border-yellow-500">
-                            <div class="flex-grow">
-                                <p class="text-lg font-bold text-gray-800">${c.name}</p>
-                                <p class="text-sm text-gray-500">${c.phone || 'No Phone'} | ${c.place || 'No Place'}</p>
-                                <p class="text-xs text-gray-400 truncate">${c.details || 'No details'}</p>
-                            </div>
-                            <div class="flex space-x-2">
-                                <button onclick="openCustomerModal('${c.id}')" class="p-2 text-green-600 hover:text-green-800 rounded-full bg-green-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                </button>
-                                <button onclick="deleteCustomer('${c.id}')" class="p-2 text-red-600 hover:text-red-800 rounded-full bg-red-50">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                    `).join('') || '<p class="text-gray-500 p-4 bg-white rounded-xl">No customers recorded yet. Add customers here or from the Sales tab.</p>'}
-                </div>
-                ${renderCustomerModal()}
-            `;
-            return customersDiv;
-        }
-
-        function openCustomerModal(customerId = null) {
-            const modal = document.getElementById('customer-modal');
-            const form = document.getElementById('customer-form');
-            form.reset();
-            document.getElementById('customer-id').value = customerId || '';
-
-            if (customerId) {
-                const customer = currentState.customers.find(c => c.id === customerId);
-                if (customer) {
-                    document.getElementById('c-name').value = customer.name;
-                    document.getElementById('c-phone').value = customer.phone;
-                    document.getElementById('c-place').value = customer.place;
-                    document.getElementById('c-details').value = customer.details;
-                    document.getElementById('c-modal-title').textContent = 'Edit Customer';
-                }
-            } else {
-                document.getElementById('c-modal-title').textContent = 'Add New Customer';
-            }
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeCustomerModal() {
-            document.getElementById('customer-modal').classList.add('hidden');
-        }
-
-        function saveCustomer(event) {
-            event.preventDefault();
-            const id = document.getElementById('customer-id').value;
-            const name = document.getElementById('c-name').value.trim();
-            const phone = document.getElementById('c-phone').value.trim();
-            const place = document.getElementById('c-place').value.trim();
-            const details = document.getElementById('c-details').value.trim();
-
-            if (!name) { showMessage('Customer name is required.'); return; }
-
-            const customerData = { name, phone, place, details };
-
-            if (id) {
-                // Edit
-                const index = currentState.customers.findIndex(c => c.id === id);
-                if (index > -1) {
-                    currentState.customers[index] = { ...currentState.customers[index], ...customerData };
-                    showMessage('Customer updated successfully!');
-                }
-            } else {
-                // Add
-                const newCustomer = { id: generateId(), ...customerData };
-                currentState.customers.push(newCustomer);
-                showMessage('Customer added successfully!');
-            }
-
-            saveCustomers();
-            closeCustomerModal();
-            renderView();
-        }
-
-        function deleteCustomer(id) {
-            if (confirm('Are you sure you want to delete this customer record?')) {
-                currentState.customers = currentState.customers.filter(c => c.id !== id);
-                saveCustomers();
-                showMessage('Customer deleted.');
-                renderView();
-            }
-        }
-
-        function renderCustomerModal() {
-             return `
-                <div id="customer-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-                    <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md">
-                        <h4 id="c-modal-title" class="text-xl font-bold mb-4 text-gray-800">Add New Customer</h4>
-                        <form id="customer-form" onsubmit="saveCustomer(event)">
-                            <input type="hidden" id="customer-id">
-                            <div class="mb-4">
-                                <label for="c-name" class="block text-sm font-medium text-gray-700">Name *</label>
-                                <input type="text" id="c-name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label for="c-phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                                    <input type="tel" id="c-phone" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                                </div>
-                                <div>
-                                    <label for="c-place" class="block text-sm font-medium text-gray-700">Place/City</label>
-                                    <input type="text" id="c-place" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                                </div>
-                            </div>
-                             <div class="mb-4">
-                                <label for="c-details" class="block text-sm font-medium text-gray-700">Details/Notes</label>
-                                <textarea id="c-details" rows="2" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border"></textarea>
-                            </div>
-                            <div class="flex justify-end space-x-3 mt-6">
-                                <button type="button" onclick="closeCustomerModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancel</button>
-                                <button type="submit" class="px-4 py-2 text-sm font-medium bg-green-500 text-white rounded-md hover:bg-green-600">Save</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            `;
-        }
-
-        // --- 7. SETTINGS VIEW ---
-
-        function renderSettingsView() {
-            const settingsDiv = document.createElement('div');
-            settingsDiv.className = 'py-4';
-            const company = currentState.settings.companyInfo;
-            const link = currentState.settings.googleSheetLink;
-
-            settingsDiv.innerHTML = `
-                <h3 class="text-2xl font-semibold mb-6 text-gray-800">Settings</h3>
-
-                <!-- Company Info Section -->
-                <div class="bg-white p-6 rounded-xl shadow mb-8">
-                    <h4 class="text-xl font-bold mb-4 text-green-600">Invoice Information (Tara Home Products)</h4>
-                    <form id="company-info-form" onsubmit="saveCompanyInfo(event)">
-                        <div class="mb-4">
-                            <label for="fssai" class="block text-sm font-medium text-gray-700">FSSAI Number</label>
-                            <input type="text" id="fssai" value="${company.fssai}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                        </div>
-                        <div class="mb-4">
-                            <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
-                            <textarea id="address" rows="2" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">${company.address}</textarea>
-                        </div>
-                        <div class="mb-6">
-                            <label for="phone" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                            <input type="tel" id="phone" value="${company.phone}" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                        </div>
-                        <button type="submit" class="btn-primary w-full">Update Company Info</button>
-                    </form>
-                </div>
-                
-                <!-- Backup Link Section -->
-                <div class="bg-white p-6 rounded-xl shadow">
-                    <h4 class="text-xl font-bold mb-4 text-yellow-600">Google Sheets Backup Link (Future Sync)</h4>
-                    <form id="backup-link-form" onsubmit="saveBackupLink(event)">
-                        <div class="mb-6">
-                            <label for="backup-link" class="block text-sm font-medium text-gray-700">Google Sheet URL</label>
-                            <input type="url" id="backup-link" value="${link}" placeholder="e.g., https://docs.google.com/spreadsheets/d/..." class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 p-2 border">
-                            <p class="text-xs text-gray-500 mt-1">This link will be used for data synchronization in a future update.</p>
-                        </div>
-                        <button type="submit" class="bg-yellow-500 text-white p-3 rounded-xl hover:bg-yellow-600 transition-colors w-full font-medium">Save Backup Link</button>
-                    </form>
-                </div>
-            `;
-            return settingsDiv;
-        }
-
-        function saveCompanyInfo(event) {
-            event.preventDefault();
-            const fssai = document.getElementById('fssai').value.trim();
-            const address = document.getElementById('address').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-
-            currentState.settings.companyInfo.fssai = fssai;
-            currentState.settings.companyInfo.address = address;
-            currentState.settings.companyInfo.phone = phone;
-
-            saveSettings();
-            showMessage('Company information updated successfully!');
-            renderView();
-        }
-
-        function saveBackupLink(event) {
-            event.preventDefault();
-            const link = document.getElementById('backup-link').value.trim();
-            currentState.settings.googleSheetLink = link;
-            saveSettings();
-            showMessage('Google Sheet Backup Link saved.');
-            renderView();
-        }
-
-        // --- INITIALIZATION ---
-
-        window.onload = function() {
-            loadState();
-            renderView();
-        };
-
-        // Initialize state on load
-        loadState();
-        renderView(); // Initial render
-    </script>
+  </div>
+
+  <div class="text-right flex items-center gap-3">
+    <div class="small-muted">Device</div>
+    <div id="device-id" class="font-medium"></div>
+  </div>
+</header>
+
+
+
+
+    <main id="app" class="space-y-6"></main>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+<script>
+/* POS - compatibility-first JS (no optional-chaining on LHS; no arrow/destructuring in risky spots). */
+
+/* LocalStorage keys and defaults */
+var LS = window.localStorage;
+
+function initDefaults() {
+  if(!LS.getItem('tara_products')) {
+    LS.setItem('tara_products', JSON.stringify([
+      { id: 'p1', name:'Mango Pickle', weight:'250g', price:100, details:'Sample' },
+      { id: 'p2', name:'Garlic Pickle', weight:'250g', price:100, details:'Sample' }
+    ]));
+  }
+  if(!LS.getItem('tara_customers')) LS.setItem('tara_customers', JSON.stringify([]));
+  if(!LS.getItem('tara_invoices')) LS.setItem('tara_invoices', JSON.stringify([]));
+  if(!LS.getItem('tara_settings')) LS.setItem('tara_settings', JSON.stringify({
+    companyInfo:{ name:'Tara Home Products', address:'', phone:'', phone2:'', email:'', instagram:'', fssai:'' },
+    upi_qr:null, insta_qr:null,
+    /* backward-compatible defaults - individual toggles */
+    show_qrs:true,
+    show_upi_qr:true,
+    show_insta_qr:true
+  }));
+  else {
+    // ensure new flags exist if user had older settings
+    try {
+      var s = JSON.parse(LS.getItem('tara_settings') || '{}');
+      if(typeof s.show_upi_qr === 'undefined') s.show_upi_qr = (typeof s.show_qrs !== 'undefined' ? s.show_qrs : true);
+      if(typeof s.show_insta_qr === 'undefined') s.show_insta_qr = (typeof s.show_qrs !== 'undefined' ? s.show_qrs : true);
+      if(typeof s.upi_qr === 'undefined') s.upi_qr = null;
+      if(typeof s.insta_qr === 'undefined') s.insta_qr = null;
+      LS.setItem('tara_settings', JSON.stringify(s));
+    } catch(e){}
+  }
+  if(!LS.getItem('tara_stock')) LS.setItem('tara_stock', JSON.stringify([]));
+  if(!LS.getItem('tara_purchases')) LS.setItem('tara_purchases', JSON.stringify([]));
+  if(!LS.getItem('tara_deleted_sales')) LS.setItem('tara_deleted_sales', JSON.stringify([]));
+  if(!LS.getItem('tara_invoice_counter')) LS.setItem('tara_invoice_counter','0');
+  if(!LS.getItem('device_id')) LS.setItem('device_id','DEV' + Math.random().toString(36).slice(2,6).toUpperCase());
+}
+initDefaults();
+
+/* App state */
+var state = {
+  view: 'home',
+  products: JSON.parse(LS.getItem('tara_products') || '[]'),
+  customers: JSON.parse(LS.getItem('tara_customers') || '[]'),
+  invoices: JSON.parse(LS.getItem('tara_invoices') || '[]'),
+  settings: JSON.parse(LS.getItem('tara_settings') || '{}'),
+  stock: JSON.parse(LS.getItem('tara_stock') || '[]'),
+  purchases: JSON.parse(LS.getItem('tara_purchases') || '[]'),
+  currentSale: { customerName:'', cart:[] },
+  lastReport: null
+};
+
+function persist() {
+  LS.setItem('tara_products', JSON.stringify(state.products));
+  LS.setItem('tara_customers', JSON.stringify(state.customers));
+  LS.setItem('tara_invoices', JSON.stringify(state.invoices));
+  LS.setItem('tara_settings', JSON.stringify(state.settings));
+  LS.setItem('tara_stock', JSON.stringify(state.stock));
+  LS.setItem('tara_purchases', JSON.stringify(state.purchases));
+}
+
+/* Utilities */
+function genId(prefix) { return (prefix||'id') + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function formatCurrency(v) { return new Intl.NumberFormat('en-IN',{ style:'currency', currency:'INR', minimumFractionDigits:2 }).format(Number(v||0)); }
+function today_ddmmyy() { var d=new Date(); var dd=('0'+d.getDate()).slice(-2), mm=('0'+(d.getMonth()+1)).slice(-2), yy=(''+d.getFullYear()).slice(-2); return dd+'-'+mm+'-'+yy; }
+function nextInvoiceNumber() { var c=parseInt(LS.getItem('tara_invoice_counter')||'0',10); if(isNaN(c)) c=0; c++; LS.setItem('tara_invoice_counter', String(c)); return 'PO100' + String(c) + '_INVOICE_' + today_ddmmyy(); }
+function showToast(msg, ms) { ms = ms || 1800; var t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(function(){ t.style.display = 'none'; }, ms); }
+
+/* Navigation */
+function navigate(view) { state.view = view; render(); try{ history.pushState({v:view}, '', '#'+view); }catch(e){} }
+window.addEventListener('popstate', function(){ navigate('home'); });
+
+document.getElementById('device-id').textContent = LS.getItem('device_id') || '';
+
+/* wire header home button */
+document.getElementById('home-btn-fixed').addEventListener('click', function(){ navigate('home'); });
+
+
+/* Render root */
+function render() {
+  var app = document.getElementById('app');
+  if(!app) return;
+  app.innerHTML = '';
+  if(state.view === 'home') app.appendChild(renderHome());
+  else if(state.view === 'products') app.appendChild(renderProducts());
+  else if(state.view === 'sales') app.appendChild(renderSales());
+  else if(state.view === 'invoices') app.appendChild(renderInvoices());
+  else if(state.view === 'reports') app.appendChild(renderReports());
+  else if(state.view === 'customers') app.appendChild(renderCustomers());
+  else if(state.view === 'stock') app.appendChild(renderStock());
+  else if(state.view === 'purchases') app.appendChild(renderPurchases());
+  else if(state.view === 'settings') app.appendChild(renderSettings());
+  else app.appendChild(renderHome());
+}
+
+/* --- Home --- */
+function renderHome() {
+  var wrap = document.createElement('div'); wrap.className='space-y-4';
+  var grid = document.createElement('div'); grid.className='grid grid-cols-2 sm:grid-cols-3 gap-4';
+  var tiles = [
+    {name:'New Sale', view:'sales'}, {name:'Products', view:'products'}, {name:'Invoices', view:'invoices'},
+    {name:'Reports', view:'reports'}, {name:'Customers', view:'customers'}, {name:'Stock', view:'stock'},
+    {name:'Purchases', view:'purchases'}, {name:'Settings', view:'settings'}
+  ];
+  for(var i=0;i<tiles.length;i++){
+    (function(t){
+      var el = document.createElement('div'); el.className='tile';
+      var h = document.createElement('div'); h.className='font-semibold'; h.textContent = t.name;
+      el.appendChild(h);
+      el.addEventListener('click', function(){ navigate(t.view); });
+      grid.appendChild(el);
+    })(tiles[i]);
+  }
+  wrap.appendChild(grid);
+
+  var recent = document.createElement('div'); recent.className='mt-4';
+  var head = document.createElement('div'); head.className='font-medium mb-2'; head.textContent='Recent Sales';
+  recent.appendChild(head);
+
+  if(state.invoices && state.invoices.length){
+    var list = document.createElement('div'); list.className='space-y-2';
+    var recentInv = state.invoices.slice(-5).reverse();
+    for(var k=0;k<recentInv.length;k++){
+      var iObj = recentInv[k];
+      var row = document.createElement('div'); row.className='card flex justify-between items-center';
+      var left = document.createElement('div');
+      var title = document.createElement('div'); title.className='font-semibold'; title.textContent = iObj.invoiceNumber;
+      var when = document.createElement('div'); when.className='small-muted'; when.textContent = (new Date(iObj.date)).toLocaleString();
+      left.appendChild(title); left.appendChild(when);
+      var right = document.createElement('div'); right.className='text-right';
+      var amt = document.createElement('div'); amt.className='font-bold'; amt.textContent = formatCurrency(iObj.total);
+      right.appendChild(amt);
+      row.appendChild(left); row.appendChild(right);
+      list.appendChild(row);
+    }
+    recent.appendChild(list);
+  } else {
+    var empty = document.createElement('div'); empty.className='text-gray-500 p-3 card'; empty.textContent='No recent sales';
+    recent.appendChild(empty);
+  }
+
+  wrap.appendChild(recent);
+  return wrap;
+}
+
+/* --- Products --- */
+function renderProducts() {
+  var container = document.createElement('div'); container.className='space-y-4';
+  var head = document.createElement('div'); head.className='flex justify-between items-center';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Products';
+  var addBtn = document.createElement('button'); addBtn.className='btn-primary'; addBtn.textContent='Add';
+  addBtn.addEventListener('click', function(){ openProductModal(null); });
+  head.appendChild(h); head.appendChild(addBtn);
+  container.appendChild(head);
+
+  var list = document.createElement('div'); list.id='product-list'; list.className='space-y-3';
+  for(var i=0;i<state.products.length;i++){
+    (function(p){
+      var row = document.createElement('div'); row.className='card flex justify-between items-center';
+      var left = document.createElement('div');
+      var title = document.createElement('div'); title.className='font-semibold'; title.textContent = p.name;
+      var meta = document.createElement('div'); meta.className='small-muted'; meta.textContent = (p.weight? p.weight + ' • ' : '') + formatCurrency(p.price);
+      left.appendChild(title); left.appendChild(meta);
+      var right = document.createElement('div'); right.className='flex gap-2';
+      var edit = document.createElement('button'); edit.className='px-3 py-1 bg-green-50 text-green-600 rounded'; edit.textContent='Edit';
+      edit.addEventListener('click', function(){ openProductModal(p.id); });
+      var del = document.createElement('button'); del.className='px-3 py-1 bg-red-50 text-red-600 rounded'; del.textContent='Delete';
+      del.addEventListener('click', function(){ if(confirm('Delete product?')){ deleteProduct(p.id); } });
+      right.appendChild(edit); right.appendChild(del);
+      row.appendChild(left); row.appendChild(right);
+      list.appendChild(row);
+    })(state.products[i]);
+  }
+  container.appendChild(list);
+  return container;
+}
+
+function openProductModal(id) {
+  closeModal('modal-product');
+  var modal = document.createElement('div'); modal.className='modal-backdrop'; modal.id='modal-product';
+  var card = document.createElement('div'); card.className='card w-full max-w-md';
+  var title = document.createElement('h4'); title.className='font-semibold mb-2'; title.textContent = id ? 'Edit Product' : 'New Product';
+  card.appendChild(title);
+
+  // form fields
+  var form = document.createElement('div'); form.className='space-y-2';
+  var nameGroup = document.createElement('div'); var nameLabel = document.createElement('label'); nameLabel.className='small-muted'; nameLabel.textContent='Name';
+  var nameInput = document.createElement('input'); nameInput.id='m-prod-name'; nameInput.className='w-full p-2 border rounded';
+  nameGroup.appendChild(nameLabel); nameGroup.appendChild(nameInput);
+
+  var row = document.createElement('div'); row.className='grid grid-cols-2 gap-2';
+  var wG = document.createElement('div'); var wLabel = document.createElement('label'); wLabel.className='small-muted'; wLabel.textContent='Weight';
+  var wInput = document.createElement('input'); wInput.id='m-prod-weight'; wInput.className='w-full p-2 border rounded';
+  wG.appendChild(wLabel); wG.appendChild(wInput);
+  var pG = document.createElement('div'); var pLabel = document.createElement('label'); pLabel.className='small-muted'; pLabel.textContent='Price';
+  var pInput = document.createElement('input'); pInput.id='m-prod-price'; pInput.type='number'; pInput.className='w-full p-2 border rounded';
+  pG.appendChild(pLabel); pG.appendChild(pInput);
+  row.appendChild(wG); row.appendChild(pG);
+
+  var detailsGroup = document.createElement('div'); var dLabel = document.createElement('label'); dLabel.className='small-muted'; dLabel.textContent='Details';
+  var dInput = document.createElement('textarea'); dInput.id='m-prod-details'; dInput.className='w-full p-2 border rounded';
+  detailsGroup.appendChild(dLabel); detailsGroup.appendChild(dInput);
+
+  form.appendChild(nameGroup); form.appendChild(row); form.appendChild(detailsGroup);
+  card.appendChild(form);
+
+  // buttons
+  var btnRow = document.createElement('div'); btnRow.className='flex justify-end gap-2 mt-3';
+  var cancel = document.createElement('button'); cancel.className='px-3 py-2 bg-gray-100 rounded'; cancel.textContent='Cancel';
+  cancel.addEventListener('click', function(){ closeModal('modal-product'); });
+  var save = document.createElement('button'); save.className='btn-primary'; save.textContent='Save';
+  save.addEventListener('click', function(){ saveProductModal(id, nameInput.value, wInput.value, pInput.value, dInput.value); });
+  btnRow.appendChild(cancel); btnRow.appendChild(save);
+  card.appendChild(btnRow);
+
+  modal.appendChild(card);
+  document.body.appendChild(modal);
+
+  // populate if editing
+  if(id) {
+    var p = null;
+    for(var i=0;i<state.products.length;i++){ if(state.products[i].id === id){ p = state.products[i]; break; } }
+    if(p){
+      nameInput.value = p.name || '';
+      wInput.value = p.weight || '';
+      pInput.value = p.price || '';
+      dInput.value = p.details || '';
+    }
+  }
+}
+
+function saveProductModal(id, name, weight, price, details) {
+  name = (name || '').trim();
+  price = Number(price || 0);
+  if(!name || isNaN(price) || price <= 0){ showToast('Enter name and price'); return; }
+  if(id) {
+    for(var i=0;i<state.products.length;i++){ if(state.products[i].id === id){ state.products[i].name = name; state.products[i].weight = weight; state.products[i].price = price; state.products[i].details = details; break; } }
+  } else {
+    state.products.push({ id: genId('prod'), name: name, weight: weight, price: price, details: details });
+  }
+  persist(); closeModal('modal-product'); showToast('Product saved'); render();
+}
+
+function deleteProduct(id) {
+  var out = [];
+  for(var i=0;i<state.products.length;i++){ if(state.products[i].id !== id) out.push(state.products[i]); }
+  state.products = out;
+  persist(); render();
+}
+
+/* --- Customers --- */
+function renderCustomers() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var head = document.createElement('div'); head.className='flex justify-between items-center';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Customers';
+  var add = document.createElement('button'); add.className='btn-primary'; add.textContent='Add';
+  add.addEventListener('click', function(){ openCustomerModal(null); });
+  head.appendChild(h); head.appendChild(add);
+  cont.appendChild(head);
+
+  var list = document.createElement('div'); list.className='space-y-3';
+  if(state.customers.length === 0) {
+    var empty = document.createElement('div'); empty.className='text-gray-500 card'; empty.textContent='No customers';
+    list.appendChild(empty);
+  } else {
+    for(var i=0;i<state.customers.length;i++){
+      (function(c){
+        var row = document.createElement('div'); row.className='card flex justify-between items-center';
+        var left = document.createElement('div');
+        var name = document.createElement('div'); name.className='font-semibold'; name.textContent = c.name;
+        var meta = document.createElement('div'); meta.className='small-muted'; meta.textContent = c.phone || '';
+        left.appendChild(name); left.appendChild(meta);
+        var right = document.createElement('div'); right.className='flex gap-2';
+        var edit = document.createElement('button'); edit.className='px-3 py-1 bg-green-50 text-green-600 rounded'; edit.textContent='Edit';
+        edit.addEventListener('click', function(){ openCustomerModal(c.id); });
+        var del = document.createElement('button'); del.className='px-3 py-1 bg-red-50 text-red-600 rounded'; del.textContent='Delete';
+        del.addEventListener('click', function(){ if(confirm('Delete customer?')){ deleteCustomer(c.id); } });
+        right.appendChild(edit); right.appendChild(del);
+        row.appendChild(left); row.appendChild(right);
+        list.appendChild(row);
+      })(state.customers[i]);
+    }
+  }
+  cont.appendChild(list);
+  return cont;
+}
+
+function openCustomerModal(id) {
+  closeModal('modal-cust');
+  var modal = document.createElement('div'); modal.className='modal-backdrop'; modal.id='modal-cust';
+  var card = document.createElement('div'); card.className='card w-full max-w-md';
+  var title = document.createElement('h4'); title.className='font-semibold mb-2'; title.textContent = id ? 'Edit Customer' : 'New Customer';
+  card.appendChild(title);
+
+  var form = document.createElement('div'); form.className='space-y-2';
+  var nmG = document.createElement('div'); var nmL = document.createElement('label'); nmL.className='small-muted'; nmL.textContent='Name'; var nmI = document.createElement('input'); nmI.id='m-cust-name'; nmI.className='w-full p-2 border rounded';
+  nmG.appendChild(nmL); nmG.appendChild(nmI);
+
+  var row = document.createElement('div'); row.className='grid grid-cols-2 gap-2';
+  var phG = document.createElement('div'); var phL = document.createElement('label'); phL.className='small-muted'; phL.textContent='Phone'; var phI = document.createElement('input'); phI.id='m-cust-phone'; phI.className='w-full p-2 border rounded';
+  phG.appendChild(phL); phG.appendChild(phI);
+  var placeG = document.createElement('div'); var plL = document.createElement('label'); plL.className='small-muted'; plL.textContent='Place'; var plI = document.createElement('input'); plI.id='m-cust-place'; plI.className='w-full p-2 border rounded';
+  placeG.appendChild(plL); placeG.appendChild(plI);
+  row.appendChild(phG); row.appendChild(placeG);
+
+  var notes = document.createElement('div'); var noteL = document.createElement('label'); noteL.className='small-muted'; noteL.textContent='Notes'; var noteI = document.createElement('textarea'); noteI.id='m-cust-notes'; noteI.className='w-full p-2 border rounded';
+  notes.appendChild(noteL); notes.appendChild(noteI);
+
+  form.appendChild(nmG); form.appendChild(row); form.appendChild(notes);
+  card.appendChild(form);
+
+  var btnRow = document.createElement('div'); btnRow.className='flex justify-end gap-2 mt-3';
+  var cancel = document.createElement('button'); cancel.className='px-3 py-2 bg-gray-100 rounded'; cancel.textContent='Cancel'; cancel.addEventListener('click', function(){ closeModal('modal-cust'); });
+  var save = document.createElement('button'); save.className='btn-primary'; save.textContent='Save'; save.addEventListener('click', function(){ saveCustomerModal(id, nmI.value, phI.value, plI.value, noteI.value); });
+  btnRow.appendChild(cancel); btnRow.appendChild(save);
+  card.appendChild(btnRow);
+  modal.appendChild(card); document.body.appendChild(modal);
+
+  if(id) {
+    var c = null; for(var i=0;i<state.customers.length;i++){ if(state.customers[i].id === id){ c = state.customers[i]; break; } }
+    if(c){ nmI.value = c.name || ''; phI.value = c.phone || ''; plI.value = c.place || ''; noteI.value = c.details || ''; }
+  }
+}
+
+function saveCustomerModal(id, name, phone, place, notes) {
+  name = (name||'').trim();
+  if(!name){ showToast('Name required'); return; }
+  if(id){
+    for(var i=0;i<state.customers.length;i++){ if(state.customers[i].id === id){ state.customers[i].name = name; state.customers[i].phone = phone; state.customers[i].place = place; state.customers[i].details = notes; break; } }
+  } else {
+    state.customers.push({ id: genId('cust'), name: name, phone: phone, place: place, details: notes });
+  }
+  persist(); closeModal('modal-cust'); showToast('Customer saved'); render();
+}
+
+function deleteCustomer(id){
+  var out=[]; for(var i=0;i<state.customers.length;i++){ if(state.customers[i].id !== id) out.push(state.customers[i]); }
+  state.customers = out; persist(); showToast('Customer deleted'); render();
+}
+
+/* --- Sales --- */
+function renderSales() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var title = document.createElement('h3'); title.className='text-lg font-semibold'; title.textContent='New Sale';
+  cont.appendChild(title);
+
+  // Customer input
+  var custCard = document.createElement('div'); custCard.className='card';
+  var custLabel = document.createElement('label'); custLabel.className='small-muted'; custLabel.textContent='Customer';
+  var custInput = document.createElement('input'); custInput.id='sale-customer'; custInput.className='w-full p-2 border rounded'; custInput.value = state.currentSale.customerName || '';
+  custCard.appendChild(custLabel); custCard.appendChild(custInput);
+
+  // Product select
+  var prodCard = document.createElement('div'); prodCard.className='card';
+  var prodLabel = document.createElement('label'); prodLabel.className='small-muted'; prodLabel.textContent='Product';
+  var prodSelect = document.createElement('select'); prodSelect.id='sale-product'; prodSelect.className='w-full p-2 border rounded';
+  var opt0 = document.createElement('option'); opt0.value=''; opt0.textContent='-- choose --'; prodSelect.appendChild(opt0);
+  for(var i=0;i<state.products.length;i++){ var opt = document.createElement('option'); opt.value = state.products[i].id; opt.textContent = state.products[i].name + ' (' + formatCurrency(state.products[i].price) + ')'; prodSelect.appendChild(opt); }
+  prodSelect.addEventListener('change', function(e){ if(e.target.value){ addToCart(e.target.value); e.target.value=''; } });
+  prodCard.appendChild(prodLabel); prodCard.appendChild(prodSelect);
+
+  cont.appendChild(custCard); cont.appendChild(prodCard);
+
+  // Cart area
+  var cartArea = document.createElement('div'); cartArea.id='sale-cart'; cartArea.className='space-y-2';
+  cont.appendChild(cartArea);
+
+  // Shipping & Discount & buttons
+  var bottomCard = document.createElement('div'); bottomCard.className='card';
+  var grid = document.createElement('div'); grid.className='grid grid-cols-2 gap-2';
+  var shipG = document.createElement('div'); var shL = document.createElement('label'); shL.className='small-muted'; shL.textContent='Shipping'; var shI = document.createElement('input'); shI.id='sale-shipping'; shI.type='number'; shI.value='0'; shI.className='w-full p-2 border rounded'; shipG.appendChild(shL); shipG.appendChild(shI);
+  var discG = document.createElement('div'); var dL = document.createElement('label'); dL.className='small-muted'; dL.textContent='Discount'; var dI = document.createElement('input'); dI.id='sale-discount'; dI.type='number'; dI.value='0'; dI.className='w-full p-2 border rounded'; discG.appendChild(dL); discG.appendChild(dI);
+  grid.appendChild(shipG); grid.appendChild(discG);
+
+  var subtotalWrap = document.createElement('div'); subtotalWrap.className='flex justify-between items-center mt-3';
+  var left = document.createElement('div'); var sLabel = document.createElement('div'); sLabel.className='small-muted'; sLabel.textContent='Subtotal'; var sVal = document.createElement('div'); sVal.id='sale-sub'; sVal.className='text-lg font-bold'; sVal.textContent = formatCurrency(0);
+  left.appendChild(sLabel); left.appendChild(sVal);
+
+  var right = document.createElement('div'); right.className='flex flex-col gap-2';
+  var btnNew = document.createElement('button'); btnNew.className='px-3 py-2 bg-gray-100 rounded'; btnNew.textContent='New'; btnNew.addEventListener('click', function(){ startNewSale(); });
+  var btnGen = document.createElement('button'); btnGen.className='btn-primary'; btnGen.textContent='Generate Invoice'; btnGen.addEventListener('click', function(){ generateInvoice(); });
+  var btnDl = document.createElement('button'); btnDl.className='px-3 py-2 border rounded'; btnDl.textContent='Download'; btnDl.addEventListener('click', function(){ downloadLastInvoice(); });
+  var btnShare = document.createElement('button'); btnShare.className='px-3 py-2 border rounded'; btnShare.textContent='Share'; btnShare.addEventListener('click', function(){ shareLastInvoice(); });
+
+  right.appendChild(btnNew); right.appendChild(btnGen); right.appendChild(btnDl); right.appendChild(btnShare);
+  subtotalWrap.appendChild(left); subtotalWrap.appendChild(right);
+  bottomCard.appendChild(grid); bottomCard.appendChild(subtotalWrap);
+  cont.appendChild(bottomCard);
+
+  updateCartUI();
+
+  // wire events to recalc totals
+  shI.addEventListener('input', updateCartUI);
+  dI.addEventListener('input', updateCartUI);
+
+  // populate current sale customer
+  custInput.addEventListener('input', function(){ state.currentSale.customerName = custInput.value; });
+
+  return cont;
+}
+
+function updateCartUI() {
+  var area = document.getElementById('sale-cart');
+  if(!area) return;
+  area.innerHTML = '';
+  if(!state.currentSale.cart || state.currentSale.cart.length === 0){
+    var empty = document.createElement('div'); empty.className='card text-gray-500'; empty.textContent='Cart empty';
+    area.appendChild(empty);
+    document.getElementById('sale-sub').textContent = formatCurrency(0);
+    return;
+  }
+  for(var i=0;i<state.currentSale.cart.length;i++){
+    (function(item){
+      var row = document.createElement('div'); row.className='card flex justify-between items-center';
+      var left = document.createElement('div'); var title = document.createElement('div'); title.className='font-semibold'; title.textContent = item.name;
+      var meta = document.createElement('div'); meta.className='small-muted'; meta.textContent = item.weight || '';
+      left.appendChild(title); left.appendChild(meta);
+
+      var right = document.createElement('div'); right.className='flex items-center gap-2';
+      var btnMinus = document.createElement('button'); btnMinus.className='px-2 py-1 bg-gray-100 rounded'; btnMinus.textContent='-';
+      btnMinus.addEventListener('click', function(){ changeCartQuantity(item.productId, -1); });
+      var qtyInput = document.createElement('input'); qtyInput.value = item.quantity; qtyInput.className='w-12 text-center border rounded p-1'; qtyInput.type='number';
+      qtyInput.addEventListener('change', function(){ var q = parseInt(qtyInput.value||0,10); if(isNaN(q) || q<=0) changeCartQuantity(item.productId, 'del'); else setCartQuantity(item.productId, q); });
+      var btnPlus = document.createElement('button'); btnPlus.className='px-2 py-1 bg-gray-100 rounded'; btnPlus.textContent='+';
+      btnPlus.addEventListener('click', function(){ changeCartQuantity(item.productId, +1); });
+      // Editable price input
+var priceInput = document.createElement('input');
+priceInput.type = 'number';
+priceInput.className = 'w-20 text-center border rounded p-1';
+priceInput.value = item.price;
+priceInput.addEventListener('change', function(){
+  var newPrice = parseFloat(priceInput.value);
+  if(isNaN(newPrice) || newPrice <= 0) {
+    showToast('Invalid price');
+    priceInput.value = item.price;
+    return;
+  }
+  item.price = newPrice; // temporary change for this cart
+  updateCartUI(); // refresh totals
+});
+right.appendChild(priceInput);
+
+
+      var btnRemove = document.createElement('button'); btnRemove.className='ml-3 text-red-600'; btnRemove.textContent='Remove';
+      btnRemove.addEventListener('click', function(){ changeCartQuantity(item.productId, 'del'); });
+
+      right.appendChild(btnMinus); right.appendChild(qtyInput); right.appendChild(btnPlus); right.appendChild(btnRemove);
+      row.appendChild(left); row.appendChild(right);
+      area.appendChild(row);
+    })(state.currentSale.cart[i]);
+  }
+
+  var subtotal = 0;
+  for(var j=0;j<state.currentSale.cart.length;j++){ subtotal += Number(state.currentSale.cart[j].price || 0) * Number(state.currentSale.cart[j].quantity || 0); }
+  document.getElementById('sale-sub').textContent = formatCurrency(subtotal);
+}
+
+function addToCart(pid) {
+  var prod = null; for(var i=0;i<state.products.length;i++){ if(state.products[i].id === pid){ prod = state.products[i]; break; } }
+  if(!prod) return;
+  var found=false;
+  for(var j=0;j<state.currentSale.cart.length;j++){
+    if(state.currentSale.cart[j].productId === pid){ state.currentSale.cart[j].quantity += 1; found=true; break; }
+  }
+  if(!found) state.currentSale.cart.push({ productId: pid, name: prod.name, weight: prod.weight, price: prod.price, quantity: 1 });
+  persist(); updateCartUI();
+}
+
+function changeCartQuantity(pid, delta) {
+  var idx=-1; for(var i=0;i<state.currentSale.cart.length;i++){ if(state.currentSale.cart[i].productId === pid){ idx=i; break; } }
+  if(idx<0) return;
+  if(delta === 'del'){ state.currentSale.cart.splice(idx,1); }
+  else { var newQ = state.currentSale.cart[idx].quantity + Number(delta); if(newQ <= 0) state.currentSale.cart.splice(idx,1); else state.currentSale.cart[idx].quantity = newQ; }
+  persist(); updateCartUI();
+}
+
+function setCartQuantity(pid, q) {
+  var idx=-1; for(var i=0;i<state.currentSale.cart.length;i++){ if(state.currentSale.cart[i].productId === pid){ idx=i; break; } }
+  if(idx<0) return;
+  state.currentSale.cart[idx].quantity = q; persist(); updateCartUI();
+}
+
+function calcSaleTotals() {
+  var subtotal = 0;
+  for(var i=0;i<state.currentSale.cart.length;i++){ subtotal += Number(state.currentSale.cart[i].price || 0) * Number(state.currentSale.cart[i].quantity || 0); }
+  var shipEl = document.getElementById('sale-shipping'); var ship = shipEl && shipEl.value ? parseFloat(shipEl.value) : 0;
+  var discEl = document.getElementById('sale-discount'); var disc = discEl && discEl.value ? parseFloat(discEl.value) : 0;
+  return { subtotal: subtotal, total: subtotal + (isNaN(ship)?0:ship) - (isNaN(disc)?0:disc), shipping: ship, discount: disc };
+}
+
+function startNewSale() {
+  state.currentSale = { customerName:'', cart:[] };
+  persist(); showToast('New sale'); render();
+}
+
+function generateInvoice() {
+  if(!state.currentSale.cart || state.currentSale.cart.length === 0){ showToast('Cart empty'); return; }
+  var custEl = document.getElementById('sale-customer'); var cust = custEl && custEl.value ? custEl.value.trim() : 'Cash Customer';
+  var totals = calcSaleTotals();
+  var inv = { id: genId('inv'), invoiceNumber: nextInvoiceNumber(), date: (new Date()).toISOString(), customerName: cust, items: JSON.parse(JSON.stringify(state.currentSale.cart)), subtotal: totals.subtotal, shipping_cost: totals.shipping, discount: totals.discount, total: totals.total, operator: LS.getItem('device_id') || '' };
+  state.invoices.push(inv);
+  // reduce stock quantities if exist
+  for(var k=0;k<inv.items.length;k++){
+    var it = inv.items[k];
+    var sidx=-1; for(var s=0;s<state.stock.length;s++){ if(state.stock[s].product_id === it.productId){ sidx=s; break; } }
+    if(sidx>=0){ state.stock[sidx].qty = Math.max(0, Number(state.stock[sidx].qty||0) - Number(it.quantity||0)); state.stock[sidx].updated_at = (new Date()).toISOString(); }
+    else {
+      // if no stock entry exists, we add with zero or negative? We'll create an entry with reduced qty (0 floor) to reflect decrease.
+      state.stock.push({ stock_id: genId('stock'), product_id: it.productId, qty: Math.max(0, -Number(it.quantity||0)), updated_at: (new Date()).toISOString() });
+    }
+  }
+  persist();
+  state.currentSale = { customerName:'', cart:[] };
+  showToast('Invoice generated: ' + inv.invoiceNumber);
+  navigate('invoices');
+}
+
+/* download / share invoice (last) */
+function downloadLastInvoice() {
+  if(!state.invoices || state.invoices.length === 0){ showToast('No invoice'); return; }
+  var inv = state.invoices[state.invoices.length - 1];
+  generateInvoicePdf(inv, function(blob){
+    var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'Invoice_' + inv.invoiceNumber + '.pdf'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Downloaded');
+  });
+}
+
+function shareLastInvoice() {
+  if(!state.invoices || state.invoices.length === 0){ showToast('No invoice'); return; }
+  var inv = state.invoices[state.invoices.length - 1];
+  generateInvoicePdf(inv, function(blob){
+    try{
+      if(navigator.canShare && navigator.canShare({ files: [ new File([blob], 'Invoice_' + inv.invoiceNumber + '.pdf', { type:'application/pdf' }) ] })){
+        navigator.share({ files: [ new File([blob], 'Invoice_' + inv.invoiceNumber + '.pdf', { type:'application/pdf' }) ], title: 'Invoice ' + inv.invoiceNumber });
+        return;
+      }
+    }catch(e){}
+    // fallback to WhatsApp text
+    shareViaWhatsApp(inv);
+  });
+}
+
+function shareViaWhatsApp(inv) {
+  var lines=[]; lines.push((state.settings.companyInfo && state.settings.companyInfo.name) ? state.settings.companyInfo.name : 'Tara'); lines.push('Invoice: ' + inv.invoiceNumber); lines.push('Total: ' + formatCurrency(inv.total)); lines.push('Items:');
+  for(var i=0;i<inv.items.length;i++){ var it = inv.items[i]; lines.push(it.name + ' x' + it.quantity + ' - ' + formatCurrency(it.price*it.quantity)); }
+  var url = 'https://wa.me/?text=' + encodeURIComponent(lines.join('\n'));
+  window.open(url, '_blank');
+}
+
+/* PDF generation callback style (to support older runtime) */
+/* Requirements implemented:
+   - Printer-friendly: black text, white background
+   - Footer: left = Payment QR + caption "Payment QR / UPI ID"
+             right = Instagram QR + caption "View us on Instagram"
+   - Below both: "Thank you for shopping with us!"
+   - Respect settings.show_upi_qr and settings.show_insta_qr individually
+   - Place QRs side-by-side at footer
+*/
+function generateInvoicePdf(inv, cb) {
+  var jspdfGlobal = window.jspdf || window.jspdf;
+  if(!jspdfGlobal || !jspdfGlobal.jsPDF) {
+    var html = 'Invoice ' + inv.invoiceNumber + '\nTotal: ' + inv.total;
+    var blob = new Blob([html], { type: 'text/plain' });
+    cb(blob);
+    return;
+  }
+
+  var jsPDF = jspdfGlobal.jsPDF;
+  var doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+  var margin = 50;                 // larger outer margin for a professional look
+  var pageWidth = doc.internal.pageSize.getWidth();
+  var pageHeight = doc.internal.pageSize.getHeight();
+
+  // Start positions
+  var y = margin;
+  var titleGap = 28;               // space after title
+  var companyBlockHeight = 70;     // reserved block height for company info
+  var metaBlockWidth = 200;        // width reserved on right for invoice meta
+  var lineGap = 16;                // line gap for table rows
+
+// Title - centered
+doc.setFont('helvetica', 'bold');
+doc.setFontSize(22);
+doc.setTextColor(0, 0, 0);
+var titleY = y + 20; // a bit lower from top
+doc.text('INVOICE', pageWidth / 2, titleY, { align: 'center' });
+
+// Add extra spacing below INVOICE
+y = titleY + 50; // increased from ~30 to 50px gap
+
+  // Company info box (left) - allow multi-line wrap
+  var ci = (state.settings && state.settings.companyInfo) ? state.settings.companyInfo : {};
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  var compX = margin;
+  var compY = y;
+  var compName = ci.name || 'Tara Home Products';
+  doc.text(compName, compX, compY);
+  doc.setFont('helvetica', 'normal');
+  var curY = compY + 14;
+
+  // Prepare an address block that wraps if too long
+  var availWidth = pageWidth - margin - metaBlockWidth - 30; // left column width
+  if(ci.address) {
+    var addrLines = doc.splitTextToSize(ci.address, availWidth);
+    for(var ai=0; ai<addrLines.length; ai++){
+      doc.text(String(addrLines[ai]), compX, curY);
+      curY += 12;
+    }
+  }
+  if(ci.phone) { doc.text('Phone: ' + ci.phone, compX, curY); curY += 12; }
+  if(ci.email) { doc.text('Email: ' + ci.email, compX, curY); curY += 12; }
+  // Ensure company block has fixed height so items won't overlap
+  var companyBottom = compY + companyBlockHeight;
+  if(curY > companyBottom - 6) companyBottom = curY + 6;
+
+  // Invoice metadata (right)
+  var metaX = pageWidth - margin - metaBlockWidth + 10;
+  var metaY = y;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Invoice No:', metaX, metaY);
+  doc.setFont('helvetica', 'normal');
+  doc.text(inv.invoiceNumber || '-', metaX + 78, metaY);
+  metaY += 16;
+  doc.setFont('helvetica', 'bold');
+  doc.text('Date:', metaX, metaY);
+  doc.setFont('helvetica', 'normal');
+  doc.text((new Date(inv.date)).toLocaleString(), metaX + 78, metaY);
+  metaY += 14;
+
+
+  // Move y to below company/meta block plus a little space
+  y = companyBottom + 18;
+
+  // Separator line
+  doc.setLineWidth(0.6);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 18;
+
+  // Customer label (left)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('Bill To:', margin, y);
+  doc.setFont('helvetica', 'normal');
+  doc.text(inv.customerName || 'Cash Customer', margin + 60, y);
+  y += 22;
+
+  // Table header
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  var colItemX = margin;
+  var colQtyX = pageWidth - margin - 200;
+  var colRateX = pageWidth - margin - 120;
+  var colAmountX = pageWidth - margin;
+  doc.text('Item', colItemX, y);
+  doc.text('Qty', colQtyX, y, { align: 'right' });
+  doc.text('Rate', colRateX, y, { align: 'right' });
+  doc.text('Amount', colAmountX, y, { align: 'right' });
+  y += 8;
+  doc.setLineWidth(0.35);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 14;
+
+  // Table rows
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  for(var i=0; i<inv.items.length; i++){
+    var it = inv.items[i];
+    var itemName = it.name + (it.weight ? ' (' + it.weight + ')' : '');
+    // wrap item name if too long
+    var wrapped = doc.splitTextToSize(itemName, colQtyX - colItemX - 8);
+    for(var wi=0; wi<wrapped.length; wi++){
+      doc.text(wrapped[wi], colItemX, y);
+      if(wi === 0) {
+        doc.text(String(it.quantity), colQtyX, y, { align: 'right' });
+        doc.text(Number(it.price).toFixed(2), colRateX, y, { align: 'right' });
+        doc.text(Number((it.price * it.quantity)).toFixed(2), colAmountX, y, { align: 'right' });
+      }
+      y += lineGap - 4;
+      if(y > pageHeight - 160){
+        doc.addPage();
+        y = margin + 20;
+      }
+    }
+  }
+
+  // Totals
+  y += 6;
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 12;
+  doc.setFontSize(11);
+  var totRightX = pageWidth - margin;
+  doc.setFont('helvetica', 'normal');
+  doc.text('Subtotal', totRightX - 120, y, { align: 'right' });
+  doc.text(Number(inv.subtotal || 0).toFixed(2), totRightX, y, { align: 'right' }); y += 16;
+  if(inv.shipping_cost && Number(inv.shipping_cost) > 0){
+    doc.text('Shipping', totRightX - 120, y, { align: 'right' });
+    doc.text(Number(inv.shipping_cost).toFixed(2), totRightX, y, { align: 'right' }); y += 16;
+  }
+  if(inv.discount && Number(inv.discount) > 0){
+    doc.text('Discount', totRightX - 120, y, { align: 'right' });
+    doc.text('-' + Number(inv.discount).toFixed(2), totRightX, y, { align: 'right' }); y += 16;
+  }
+  doc.setFont('helvetica', 'bold');
+  doc.text('Total (Rs.)', totRightX - 120, y, { align: 'right' });
+  doc.text(Number(inv.total || 0).toFixed(2), totRightX, y, { align: 'right' });
+  y += 26;
+
+  // Footer area: QRs at left & right, thank-you centered
+  var footerY = pageHeight - 120;
+  var qrSize = 84;
+  var showUpi = !!(state.settings && state.settings.show_upi_qr);
+  var showInsta = !!(state.settings && state.settings.show_insta_qr);
+  var upiImg = (state.settings && state.settings.upi_qr) ? state.settings.upi_qr : null;
+  var instaImg = (state.settings && state.settings.insta_qr) ? state.settings.insta_qr : null;
+
+  // Left QR (UPI)
+  if(showUpi && upiImg){
+    try { doc.addImage(upiImg, 'PNG', margin, footerY, qrSize, qrSize); } catch(e){}
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Payment QR / UPI ID', margin + qrSize / 2, footerY + qrSize + 12, { align: 'center' });
+  }
+
+  // Right QR (Insta)
+  if(showInsta && instaImg){
+    try { doc.addImage(instaImg, 'PNG', pageWidth - margin - qrSize, footerY, qrSize, qrSize); } catch(e){}
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Follow us on Instagram', pageWidth - margin - qrSize / 2, footerY + qrSize + 12, { align: 'center' });
+  }
+
+  // Thank you centered between QRs
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('Thank you for shopping with us!', pageWidth / 2, footerY + qrSize + 30, { align: 'center' });
+
+  // Output PDF
+  var uint8 = doc.output('arraybuffer');
+  var blob = new Blob([uint8], { type: 'application/pdf' });
+  cb(blob);
+}
+
+/* --- Invoices view --- */
+function renderInvoices() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var top = document.createElement('div'); top.className='flex justify-between items-center';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Invoices';
+  var controlsWrap = document.createElement('div'); controlsWrap.className='flex gap-2 items-center';
+  var newBtn = document.createElement('button'); newBtn.className='btn-primary'; newBtn.textContent='New Sale'; newBtn.addEventListener('click', function(){ navigate('sales'); });
+  var delSalesBtn = document.createElement('button'); delSalesBtn.className='px-3 py-2 border rounded'; delSalesBtn.textContent='🗑 Deleted Sales'; delSalesBtn.addEventListener('click', function(){ openDeletedSalesModal(); });
+  controlsWrap.appendChild(newBtn); controlsWrap.appendChild(delSalesBtn);
+  top.appendChild(h); top.appendChild(controlsWrap); cont.appendChild(top);
+
+  var list = document.createElement('div'); list.className='space-y-3';
+  for(var i=state.invoices.length-1;i>=0;i--){
+    (function(inv){
+      var row = document.createElement('div'); row.className='card flex justify-between items-center';
+      var left = document.createElement('div'); var title = document.createElement('div'); title.className='font-semibold'; title.textContent = inv.invoiceNumber;
+      var dt = document.createElement('div'); dt.className='small-muted'; dt.textContent = (new Date(inv.date)).toLocaleString();
+      left.appendChild(title); left.appendChild(dt);
+      var right = document.createElement('div'); right.className='flex gap-2';
+      var view = document.createElement('button'); view.className='px-3 py-1 bg-gray-100 rounded'; view.textContent='View'; view.addEventListener('click', function(){ openInvoicePreview(inv.id); });
+      var shareB = document.createElement('button'); shareB.className='px-3 py-1 bg-gray-100 rounded'; shareB.textContent='Share'; shareB.addEventListener('click', function(){ shareInvoiceById(inv.id); });
+      var dl = document.createElement('button'); dl.className='px-3 py-1 bg-gray-100 rounded'; dl.textContent='Download'; dl.addEventListener('click', function(){ downloadInvoiceById(inv.id); });
+      var del = document.createElement('button'); del.className='px-3 py-1 text-red-600'; del.textContent='Delete'; del.addEventListener('click', function(){ deleteInvoice(inv.id); });
+      right.appendChild(view); right.appendChild(shareB); right.appendChild(dl); right.appendChild(del);
+      row.appendChild(left); row.appendChild(right); list.appendChild(row);
+    })(state.invoices[i]);
+  }
+  cont.appendChild(list);
+  return cont;
+}
+
+function openInvoicePreview(id) {
+  var inv = null; for(var i=0;i<state.invoices.length;i++){ if(state.invoices[i].id === id){ inv = state.invoices[i]; break; } }
+  if(!inv){ showToast('Not found'); return; }
+  closeModal('inv-preview');
+  var modal = document.createElement('div'); modal.className='modal-backdrop'; modal.id='inv-preview';
+  var card = document.createElement('div'); card.className='card w-full max-w-2xl';
+  // header
+  var header = document.createElement('div'); header.className='flex justify-between';
+  var left = document.createElement('div'); var nameD = document.createElement('div'); nameD.className='font-bold'; nameD.textContent = (state.settings.companyInfo && state.settings.companyInfo.name) ? state.settings.companyInfo.name : 'Tara';
+  var addr = document.createElement('div'); addr.className='small-muted'; addr.textContent = (state.settings.companyInfo && state.settings.companyInfo.address) ? state.settings.companyInfo.address : '';
+  left.appendChild(nameD); left.appendChild(addr);
+  var right = document.createElement('div'); right.className='text-right'; right.innerHTML = 'Invoice: ' + inv.invoiceNumber + '<br/>' + (new Date(inv.date)).toLocaleString();
+  header.appendChild(left); header.appendChild(right);
+  card.appendChild(header);
+  var hr = document.createElement('hr'); hr.className='my-3'; card.appendChild(hr);
+  // items table
+  var tbl = document.createElement('div'); var table = document.createElement('table'); table.style.width='100%'; table.style.borderCollapse='collapse';
+  var thead = document.createElement('thead'); thead.innerHTML = '<tr><th style="text-align:left;border-bottom:1px solid #eee">Item</th><th style="text-align:right;border-bottom:1px solid #eee">Qty</th><th style="text-align:right;border-bottom:1px solid #eee">Rate</th><th style="text-align:right;border-bottom:1px solid #eee">Line</th></tr>';
+  table.appendChild(thead);
+  var tbody = document.createElement('tbody');
+  for(var j=0;j<inv.items.length;j++){ var it = inv.items[j]; var tr = document.createElement('tr'); tr.innerHTML = '<td style="padding:8px 0">' + it.name + '</td><td style="text-align:right">' + it.quantity + '</td><td style="text-align:right">' + Number(it.price).toFixed(2) + '</td><td style="text-align:right">' + Number(it.price*it.quantity).toFixed(2) + '</td>'; tbody.appendChild(tr); }
+  table.appendChild(tbody); tbl.appendChild(table); card.appendChild(tbl);
+  // totals
+  var totalsDiv = document.createElement('div'); totalsDiv.className='text-right mt-3'; totalsDiv.innerHTML = 'Subtotal: ' + Number(inv.subtotal).toFixed(2) + '<br/>';
+  if(inv.shipping_cost && Number(inv.shipping_cost)>0) totalsDiv.innerHTML += 'Shipping: ' + Number(inv.shipping_cost).toFixed(2) + '<br/>';
+  if(inv.discount && Number(inv.discount)>0) totalsDiv.innerHTML += 'Discount: ' + Number(inv.discount).toFixed(2) + '<br/>';
+  totalsDiv.innerHTML += '<div class="font-bold mt-2">Total: ' + Number(inv.total).toFixed(2) + '</div>';
+  card.appendChild(totalsDiv);
+
+  var footer = document.createElement('div'); footer.className='my-3 flex justify-between items-center';
+  var info = document.createElement('div'); info.className='small-muted'; info.innerHTML = (state.settings.companyInfo && state.settings.companyInfo.phone ? state.settings.companyInfo.phone : '') + (state.settings.companyInfo && state.settings.companyInfo.phone2 ? (' / ' + state.settings.companyInfo.phone2) : '') + '<br/>' + (state.settings.companyInfo && state.settings.companyInfo.email ? state.settings.companyInfo.email : '') + '<br/>' + (state.settings.companyInfo && state.settings.companyInfo.instagram ? state.settings.companyInfo.instagram : '');
+  footer.appendChild(info);
+  if((state.settings.show_upi_qr && state.settings.upi_qr) || (state.settings.show_insta_qr && state.settings.insta_qr)){
+    var qrWrap = document.createElement('div'); qrWrap.className='flex gap-3';
+    if(state.settings.show_upi_qr && state.settings.upi_qr){ var img1=document.createElement('img'); img1.src = state.settings.upi_qr; img1.style.width='80px'; img1.style.height='80px'; img1.className='qr-thumb'; qrWrap.appendChild(img1); }
+    if(state.settings.show_insta_qr && state.settings.insta_qr){ var img2=document.createElement('img'); img2.src = state.settings.insta_qr; img2.style.width='80px'; img2.style.height='80px'; img2.className='qr-thumb'; qrWrap.appendChild(img2); }
+    footer.appendChild(qrWrap);
+  }
+  card.appendChild(footer);
+
+  // actions
+  var actionRow = document.createElement('div'); actionRow.className='flex justify-end gap-2 mt-4';
+  var closeBtn = document.createElement('button'); closeBtn.className='px-3 py-2 bg-gray-100 rounded'; closeBtn.textContent='Close'; closeBtn.addEventListener('click', function(){ closeModal('inv-preview'); });
+  var dlBtn = document.createElement('button'); dlBtn.className='btn-primary'; dlBtn.textContent='Download PDF'; dlBtn.addEventListener('click', function(){ downloadInvoiceById(id); });
+  actionRow.appendChild(closeBtn); actionRow.appendChild(dlBtn);
+  card.appendChild(actionRow);
+
+  modal.appendChild(card); document.body.appendChild(modal);
+}
+
+function shareInvoiceById(id) {
+  var inv = null; for(var i=0;i<state.invoices.length;i++){ if(state.invoices[i].id === id){ inv = state.invoices[i]; break; } }
+  if(!inv){ showToast('Not found'); return; }
+  generateInvoicePdf(inv, function(blob){
+    try{
+      if(navigator.canShare && navigator.canShare({ files: [ new File([blob], 'Invoice_' + inv.invoiceNumber + '.pdf', { type:'application/pdf' }) ] })){
+        navigator.share({ files: [ new File([blob], 'Invoice_' + inv.invoiceNumber + '.pdf', { type:'application/pdf' }) ], title: 'Invoice ' + inv.invoiceNumber });
+        return;
+      }
+    }catch(e){}
+    shareViaWhatsApp(inv);
+  });
+}
+
+function downloadInvoiceById(id) {
+  var inv = null; for(var i=0;i<state.invoices.length;i++){ if(state.invoices[i].id === id){ inv = state.invoices[i]; break; } }
+  if(!inv){ showToast('Not found'); return; }
+  generateInvoicePdf(inv, function(blob){
+    var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'Invoice_' + inv.invoiceNumber + '.pdf'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('Downloaded');
+  });
+}
+
+/* Modify deleteInvoice: push to deleted_sales (already present) */
+function deleteInvoice(id) {
+  if(!confirm('Delete invoice?')) return;
+  var idx = -1; for(var i=0;i<state.invoices.length;i++){ if(state.invoices[i].id === id){ idx=i; break; } }
+  if(idx < 0){ showToast('Not found'); return; }
+  var rec = state.invoices.splice(idx,1)[0];
+  // push to deleted_sales (include deleted_at and snapshot)
+  var del = JSON.parse(LS.getItem('tara_deleted_sales') || '[]');
+  del.push({ id: genId('delsale'), invoiceId: rec.id, deleted_at: (new Date()).toISOString(), snapshot: rec });
+  LS.setItem('tara_deleted_sales', JSON.stringify(del));
+  // restore stock (as before) when deleting invoice: add quantities back
+  for(var j=0;j<rec.items.length;j++){
+    var it = rec.items[j];
+    var sidx=-1; for(var s=0;s<state.stock.length;s++){ if(state.stock[s].product_id === it.productId){ sidx=s; break; } }
+    if(sidx >= 0) state.stock[sidx].qty = Number(state.stock[sidx].qty||0) + Number(it.quantity||0);
+    else state.stock.push({ stock_id: genId('stock'), product_id: it.productId, qty: Number(it.quantity||0), updated_at: (new Date()).toISOString() });
+  }
+  persist(); showToast('Invoice deleted'); render();
+}
+
+/* --- Deleted Sales modal & restore logic --- */
+function openDeletedSalesModal() {
+  closeModal('modal-deleted-sales');
+  var modal = document.createElement('div'); modal.className='modal-backdrop'; modal.id='modal-deleted-sales';
+  var card = document.createElement('div'); card.className='card w-full max-w-2xl';
+  var title = document.createElement('h4'); title.className='font-semibold mb-2'; title.textContent = 'Deleted Sales (last 30 days)';
+  card.appendChild(title);
+
+  var delArr = JSON.parse(LS.getItem('tara_deleted_sales') || '[]') || [];
+  // filter last 30 days
+  var now = new Date();
+  var cutoff = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+  var recent = [];
+  for(var i=0;i<delArr.length;i++){
+    try {
+      var d = new Date(delArr[i].deleted_at);
+      if(d >= cutoff) recent.push(delArr[i]);
+    } catch(e){}
+  }
+
+  if(recent.length === 0) {
+    var empty = document.createElement('div'); empty.className='text-gray-500 card'; empty.textContent='No deleted sales in the last 30 days';
+    card.appendChild(empty);
+  } else {
+    var tableWrap = document.createElement('div'); tableWrap.style.overflowX = 'auto';
+    var table = document.createElement('table'); table.style.width='100%'; table.style.borderCollapse='collapse';
+    var thead = document.createElement('thead'); thead.innerHTML = '<tr><th style="text-align:left;padding:8px;border-bottom:1px solid #eee">Invoice #</th><th style="text-align:left;padding:8px;border-bottom:1px solid #eee">Deleted On</th><th style="text-align:right;padding:8px;border-bottom:1px solid #eee">Total</th><th style="text-align:center;padding:8px;border-bottom:1px solid #eee">Action</th></tr>';
+    table.appendChild(thead);
+    var tbody = document.createElement('tbody');
+    for(var j=0;j<recent.length;j++){
+      (function(rec){
+        var tr = document.createElement('tr');
+        var invNum = rec.snapshot && rec.snapshot.invoiceNumber ? rec.snapshot.invoiceNumber : '(unknown)';
+        var delOn = rec.deleted_at ? (new Date(rec.deleted_at)).toLocaleString() : '';
+        var total = rec.snapshot && rec.snapshot.total ? Number(rec.snapshot.total).toFixed(2) : '0.00';
+        var td1 = document.createElement('td'); td1.style.padding='8px'; td1.textContent = invNum;
+        var td2 = document.createElement('td'); td2.style.padding='8px'; td2.textContent = delOn;
+        var td3 = document.createElement('td'); td3.style.padding='8px'; td3.style.textAlign='right'; td3.textContent = formatCurrency(total);
+        var td4 = document.createElement('td'); td4.style.padding='8px'; td4.style.textAlign='center';
+        var btn = document.createElement('button'); btn.className='px-3 py-1 bg-green-50 text-green-600 rounded'; btn.textContent='Restore';
+        btn.addEventListener('click', function(){ restoreDeletedSale(rec.id); });
+        td4.appendChild(btn);
+        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3); tr.appendChild(td4);
+        tbody.appendChild(tr);
+      })(recent[j]);
+    }
+    table.appendChild(tbody); tableWrap.appendChild(table); card.appendChild(tableWrap);
+  }
+
+  var closeRow = document.createElement('div'); closeRow.className='flex justify-end gap-2 mt-3';
+  var closeBtn = document.createElement('button'); closeBtn.className='px-3 py-2 bg-gray-100 rounded'; closeBtn.textContent='Close'; closeBtn.addEventListener('click', function(){ closeModal('modal-deleted-sales'); });
+  closeRow.appendChild(closeBtn); card.appendChild(closeRow);
+
+  modal.appendChild(card); document.body.appendChild(modal);
+}
+
+function restoreDeletedSale(delId) {
+  if(!confirm('Restore this sale? This will re-add the invoice and reduce stock again.')) return;
+  var delArr = JSON.parse(LS.getItem('tara_deleted_sales') || '[]') || [];
+  var idx = -1; for(var i=0;i<delArr.length;i++){ if(delArr[i].id === delId){ idx = i; break; } }
+  if(idx < 0){ showToast('Not found'); return; }
+  var rec = delArr.splice(idx,1)[0];
+  // re-add snapshot to invoices (preserve same invoiceNumber, date)
+  var snap = rec.snapshot;
+  if(snap) {
+    // create a new id for active invoice (but preserve invoiceNumber and date)
+    var restored = {
+      id: genId('inv'),
+      invoiceNumber: snap.invoiceNumber || nextInvoiceNumber(),
+      date: snap.date || (new Date()).toISOString(),
+      customerName: snap.customerName || 'Cash Customer',
+      items: JSON.parse(JSON.stringify(snap.items || [])),
+      subtotal: snap.subtotal || 0,
+      shipping_cost: snap.shipping_cost || 0,
+      discount: snap.discount || 0,
+      total: snap.total || 0,
+      operator: snap.operator || (LS.getItem('device_id') || '')
+    };
+    state.invoices.push(restored);
+    // reduce stock again for each item (mirror initial sale behaviour)
+    for(var j=0;j<restored.items.length;j++){
+      var it = restored.items[j];
+      var sidx=-1; for(var s=0;s<state.stock.length;s++){ if(state.stock[s].product_id === it.productId){ sidx=s; break; } }
+      if(sidx>=0){ state.stock[sidx].qty = Math.max(0, Number(state.stock[sidx].qty||0) - Number(it.quantity||0)); state.stock[sidx].updated_at = (new Date()).toISOString(); }
+      else {
+        // create an entry with zero or negative (floor to 0) to reflect reduction
+        state.stock.push({ stock_id: genId('stock'), product_id: it.productId, qty: Math.max(0, -Number(it.quantity||0)), updated_at: (new Date()).toISOString() });
+      }
+    }
+    // persist updated deleted array and state
+    LS.setItem('tara_deleted_sales', JSON.stringify(delArr));
+    persist();
+    showToast('Sale restored: ' + restored.invoiceNumber);
+    closeModal('modal-deleted-sales');
+    render();
+    return;
+  } else {
+    showToast('Snapshot missing; cannot restore');
+    return;
+  }
+}
+
+/* --- Reports --- */
+function renderReports() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var top = document.createElement('div'); top.className='flex justify-between items-center';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Reports';
+  var controls = document.createElement('div'); controls.className='flex gap-2';
+  var from = document.createElement('input'); from.type='date'; from.id='r-from'; from.className='p-2 border rounded';
+  var to = document.createElement('input'); to.type='date'; to.id='r-to'; to.className='p-2 border rounded';
+  var run = document.createElement('button'); run.className='btn-primary'; run.textContent='Run'; run.addEventListener('click', generateReports);
+  var exportBtn = document.createElement('button'); exportBtn.className='px-3 py-2 border rounded'; exportBtn.textContent='Export CSV'; exportBtn.addEventListener('click', exportReportCsv);
+  controls.appendChild(from); controls.appendChild(to); controls.appendChild(run); controls.appendChild(exportBtn);
+  top.appendChild(h); top.appendChild(controls); cont.appendChild(top);
+  var content = document.createElement('div'); content.id='report-content'; content.className='grid grid-cols-1 md:grid-cols-2 gap-4';
+  cont.appendChild(content);
+
+  // default date range: last 1 month
+  var now = new Date(); to.value = now.toISOString().slice(0,10);
+  var prev = new Date(); prev.setMonth(prev.getMonth() - 1); from.value = prev.toISOString().slice(0,10);
+
+  generateReports();
+  return cont;
+}
+
+function generateReports() {
+  var fromStr = document.getElementById('r-from') && document.getElementById('r-from').value ? document.getElementById('r-from').value : null;
+  var toStr = document.getElementById('r-to') && document.getElementById('r-to').value ? document.getElementById('r-to').value : null;
+  var from = fromStr ? new Date(fromStr + 'T00:00:00') : new Date(0); var to = toStr ? new Date(toStr + 'T23:59:59') : new Date();
+  var invoices=[]; for(var i=0;i<state.invoices.length;i++){ var d=new Date(state.invoices[i].date); if(d>=from && d<=to) invoices.push(state.invoices[i]); }
+  var purchases=[]; for(var p=0;p<state.purchases.length;p++){ var dd=new Date(state.purchases[p].date); if(dd>=from && dd<=to) purchases.push(state.purchases[p]); }
+  var totalRevenue=0; for(var r=0;r<invoices.length;r++) totalRevenue += Number(invoices[r].total||0);
+  var totalPurchases=0; for(var q=0;q<purchases.length;q++) totalPurchases += Number(purchases[q].amount_spent||0);
+  var gross = totalRevenue - totalPurchases;
+  var daily = {}; var productMap = {}; var customerMap = {}; var monthly = {};
+  for(var ii=0; ii<invoices.length; ii++){
+    var inv = invoices[ii];
+    var dKey = (new Date(inv.date)).toISOString().slice(0,10);
+    daily[dKey] = (daily[dKey] || 0) + Number(inv.total||0);
+    for(var m=0;m<inv.items.length;m++){
+      var it = inv.items[m];
+      if(!productMap[it.productId]) productMap[it.productId] = { name: it.name, qty:0, sales:0 };
+      productMap[it.productId].qty += Number(it.quantity||0);
+      productMap[it.productId].sales += Number(it.price * it.quantity || 0);
+    }
+    var cname = inv.customerName || 'Unknown';
+    if(!customerMap[cname]) customerMap[cname] = { name:cname, total:0, invoices:0 };
+    customerMap[cname].total += Number(inv.total||0);
+    customerMap[cname].invoices += 1;
+    var mKey = (new Date(inv.date)).getFullYear() + '-' + String((new Date(inv.date)).getMonth()+1).padStart(2,'0');
+    monthly[mKey] = (monthly[mKey] || 0) + Number(inv.total||0);
+  }
+  // top arrays
+  var topProducts=[]; for(var pid in productMap) if(productMap.hasOwnProperty(pid)) topProducts.push(productMap[pid]);
+  topProducts.sort(function(a,b){ return b.qty - a.qty; }); topProducts = topProducts.slice(0,10);
+  var topCustomers=[]; for(var cn in customerMap) if(customerMap.hasOwnProperty(cn)) topCustomers.push(customerMap[cn]);
+  topCustomers.sort(function(a,b){ return b.total - a.total; }); topCustomers = topCustomers.slice(0,10);
+
+  var area = document.getElementById('report-content'); if(!area) return; area.innerHTML='';
+  var left = document.createElement('div'); left.className='card'; left.innerHTML = '<div class="font-semibold mb-2">Summary</div><div class="small-muted">Revenue</div><div class="font-bold text-xl">' + formatCurrency(totalRevenue) + '</div><div class="small-muted mt-2">Purchases (Expense)</div><div class="font-semibold">' + formatCurrency(totalPurchases) + '</div><div class="small-muted mt-2">Gross</div><div class="font-bold">' + formatCurrency(gross) + '</div>';
+  var prodCard = document.createElement('div'); prodCard.className='card'; var prodHtml = '<div class="font-semibold mb-2">Top Products</div>'; if(topProducts.length){ prodHtml += '<ul class="space-y-1">'; for(var t=0;t<topProducts.length;t++){ prodHtml += '<li class="flex justify-between"><span>' + topProducts[t].name + '</span><span class="font-semibold">' + topProducts[t].qty + '</span></li>'; } prodHtml += '</ul>'; } else prodHtml += '<div class="small-muted">No product data</div>'; prodCard.innerHTML = prodHtml;
+  var custCard = document.createElement('div'); custCard.className='card'; var custHtml = '<div class="font-semibold mb-2">Top Customers</div>'; if(topCustomers.length){ custHtml += '<ul class="space-y-1">'; for(var tc=0;tc<topCustomers.length;tc++){ custHtml += '<li class="flex justify-between"><span>' + topCustomers[tc].name + '</span><span class="font-semibold">' + formatCurrency(topCustomers[tc].total) + '</span></li>'; } custHtml += '</ul>'; } else custHtml += '<div class="small-muted">No customer data</div>'; custCard.innerHTML = custHtml;
+  var dailyCard = document.createElement('div'); dailyCard.className='card'; var keys = Object.keys(daily); keys.sort(); var dailyHtml = '<div class="font-semibold mb-2">Daily Sales</div>'; if(keys.length){ dailyHtml += '<ul class="space-y-1">'; for(var di=0;di<keys.length;di++){ dailyHtml += '<li class="flex justify-between"><span>' + keys[di] + '</span><span>' + formatCurrency(daily[keys[di]]) + '</span></li>'; } dailyHtml += '</ul>'; } else dailyHtml += '<div class="small-muted">No daily data</div>'; dailyCard.innerHTML = dailyHtml;
+
+  area.appendChild(left); area.appendChild(prodCard); area.appendChild(custCard); area.appendChild(dailyCard);
+
+  state.lastReport = { invoices: invoices, purchases: purchases, totalRevenue: totalRevenue, totalPurchases: totalPurchases, topProducts: topProducts, topCustomers: topCustomers, daily: daily, monthly: monthly, from: fromStr, to: toStr };
+}
+
+function exportReportCsv() {
+  var rpt = state.lastReport; if(!rpt){ showToast('Run report first'); return; }
+  var rows = []; for(var i=0;i<rpt.invoices.length;i++){ rows.push({ invoice: rpt.invoices[i].invoiceNumber, date: rpt.invoices[i].date, customer: rpt.invoices[i].customerName, total: rpt.invoices[i].total }); }
+  var csv = toCsv(rows); var blob = new Blob([csv], { type:'text/csv' }); var url = URL.createObjectURL(blob); var a = document.createElement('a'); a.href = url; a.download = 'report_invoices.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToast('CSV exported');
+}
+function toCsv(rows){ if(!rows || !rows.length) return ''; var keys = Object.keys(rows[0]); var out = keys.join(',') + '\n'; for(var r=0;r<rows.length;r++){ var line=[]; for(var k=0;k<keys;k++){ var v = rows[r][keys[k]] || ''; line.push('"' + String(v).replace(/"/g,'""') + '"'); } out += line.join(',') + '\n'; } return out; }
+
+/* --- Stock --- */
+function renderStock() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var top = document.createElement('div'); top.className='flex justify-between items-center';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Stock';
+  var adj = document.createElement('button'); adj.className='btn-primary'; adj.textContent='Adjust'; adj.addEventListener('click', openAdjustStock);
+  top.appendChild(h); top.appendChild(adj); cont.appendChild(top);
+  var list = document.createElement('div'); list.className='space-y-3';
+  for(var i=0;i<state.products.length;i++){
+    var p = state.products[i]; var s = null; for(var j=0;j<state.stock.length;j++){ if(state.stock[j].product_id === p.id){ s = state.stock[j]; break; } }
+    var qty = s ? s.qty : 0; var updated = s && s.updated_at ? s.updated_at : '-';
+    var row = document.createElement('div'); row.className='card flex justify-between items-center';
+    var left = document.createElement('div'); var title = document.createElement('div'); title.className='font-semibold'; title.textContent = p.name; var meta = document.createElement('div'); meta.className='small-muted'; meta.textContent = p.weight || '';
+    left.appendChild(title); left.appendChild(meta);
+    var right = document.createElement('div'); right.className='text-right'; right.innerHTML = '<div class=\"font-semibold\">'+qty+'</div><div class=\"small-muted\">'+updated+'</div>';
+    row.appendChild(left); row.appendChild(right); list.appendChild(row);
+  }
+  cont.appendChild(list); return cont;
+}
+
+function openAdjustStock() {
+  closeModal('modal-stock');
+  var modal = document.createElement('div'); modal.className='modal-backdrop'; modal.id='modal-stock';
+  var card = document.createElement('div'); card.className='card w-full max-w-md';
+  var title = document.createElement('h4'); title.className='font-semibold mb-2'; title.textContent='Adjust Stock';
+  card.appendChild(title);
+  var labelP = document.createElement('label'); labelP.className='small-muted'; labelP.textContent='Product';
+  var sel = document.createElement('select'); sel.id='m-stock-prod'; sel.className='w-full p-2 border rounded';
+  var emptyOpt = document.createElement('option'); emptyOpt.value=''; emptyOpt.textContent='-- select --'; sel.appendChild(emptyOpt);
+  for(var i=0;i<state.products.length;i++){ var o=document.createElement('option'); o.value=state.products[i].id; o.textContent=state.products[i].name; sel.appendChild(o); }
+  card.appendChild(labelP); card.appendChild(sel);
+  var qtyLabel = document.createElement('label'); qtyLabel.className='small-muted mt-2'; qtyLabel.textContent='Quantity (absolute)'; var qtyIn = document.createElement('input'); qtyIn.id='m-stock-qty'; qtyIn.type='number'; qtyIn.className='w-full p-2 border rounded';
+  card.appendChild(qtyLabel); card.appendChild(qtyIn);
+  var row = document.createElement('div'); row.className='flex justify-end gap-2 mt-4';
+  var can = document.createElement('button'); can.className='px-3 py-2 bg-gray-100 rounded'; can.textContent='Cancel'; can.addEventListener('click', function(){ closeModal('modal-stock'); });
+  var save = document.createElement('button'); save.className='btn-primary'; save.textContent='Save'; save.addEventListener('click', function(){ saveAdjustedStock(); });
+  row.appendChild(can); row.appendChild(save); card.appendChild(row);
+  modal.appendChild(card); document.body.appendChild(modal);
+}
+
+function saveAdjustedStock() {
+  var pidEl = document.getElementById('m-stock-prod'); var pid = pidEl && pidEl.value ? pidEl.value : null;
+  var qtyEl = document.getElementById('m-stock-qty'); var qty = qtyEl && qtyEl.value ? parseInt(qtyEl.value,10) : 0;
+  if(!pid){ showToast('Select product'); return; }
+  var idx = -1; for(var i=0;i<state.stock.length;i++){ if(state.stock[i].product_id === pid){ idx=i; break; } }
+  if(idx>=0){ state.stock[idx].qty = qty; state.stock[idx].updated_at = (new Date()).toISOString(); }
+  else state.stock.push({ stock_id: genId('stock'), product_id: pid, qty: qty, updated_at: (new Date()).toISOString() });
+  persist(); closeModal('modal-stock'); showToast('Stock updated'); render();
+}
+
+/* --- Purchases --- */
+function renderPurchases() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var top = document.createElement('div'); top.className='flex justify-between items-center';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Purchases';
+  var add = document.createElement('button'); add.className='btn-primary'; add.textContent='New'; add.addEventListener('click', openPurchaseModal);
+  top.appendChild(h); top.appendChild(add); cont.appendChild(top);
+  var list = document.createElement('div'); list.className='space-y-3';
+  if(state.purchases.length===0) { var empty=document.createElement('div'); empty.className='card text-gray-500'; empty.textContent='No purchases'; list.appendChild(empty); }
+  else {
+    for(var i=state.purchases.length-1;i>=0;i--){
+      (function(p){
+        var row = document.createElement('div'); row.className='card flex justify-between items-center';
+        var left = document.createElement('div'); var title = document.createElement('div'); title.className='font-semibold'; title.textContent = p.supplier_name || 'Supplier'; var meta = document.createElement('div'); meta.className='small-muted'; meta.textContent = (new Date(p.date)).toLocaleDateString();
+        left.appendChild(title); left.appendChild(meta);
+        var right = document.createElement('div'); right.className='text-right'; var amt = document.createElement('div'); amt.className='font-semibold'; amt.textContent = formatCurrency(p.amount_spent); right.appendChild(amt);
+        var del = document.createElement('button'); del.className='text-red-600 mt-2'; del.textContent='Delete'; del.addEventListener('click', function(){ if(confirm('Delete purchase?')) deletePurchase(p.purchase_id); });
+        right.appendChild(del); row.appendChild(left); row.appendChild(right); list.appendChild(row);
+      })(state.purchases[i]);
+    }
+  }
+  cont.appendChild(list); return cont;
+}
+
+function openPurchaseModal() {
+  closeModal('modal-purchase');
+  var modal = document.createElement('div'); modal.className='modal-backdrop'; modal.id='modal-purchase';
+  var card = document.createElement('div'); card.className='card w-full max-w-md';
+  card.innerHTML = '<h4 class="font-semibold mb-2">New Purchase</h4>';
+  var dateLabel = document.createElement('label'); dateLabel.className='small-muted'; dateLabel.textContent='Date';
+  var dateIn = document.createElement('input'); dateIn.id='m-p-date'; dateIn.type='date'; dateIn.className='w-full p-2 border rounded'; dateIn.value = (new Date()).toISOString().slice(0,10);
+  card.appendChild(dateLabel); card.appendChild(dateIn);
+  var amtLabel = document.createElement('label'); amtLabel.className='small-muted mt-2'; amtLabel.textContent='Amount';
+  var amtIn = document.createElement('input'); amtIn.id='m-p-amount'; amtIn.type='number'; amtIn.className='w-full p-2 border rounded';
+  card.appendChild(amtLabel); card.appendChild(amtIn);
+  var supLabel = document.createElement('label'); supLabel.className='small-muted mt-2'; supLabel.textContent='Supplier';
+  var supIn = document.createElement('input'); supIn.id='m-p-supplier'; supIn.className='w-full p-2 border rounded';
+  card.appendChild(supLabel); card.appendChild(supIn);
+  var noteLabel = document.createElement('label'); noteLabel.className='small-muted mt-2'; noteLabel.textContent='Note';
+  var noteIn = document.createElement('textarea'); noteIn.id='m-p-note'; noteIn.className='w-full p-2 border rounded';
+  card.appendChild(noteLabel); card.appendChild(noteIn);
+  var row = document.createElement('div'); row.className='flex justify-end gap-2 mt-4';
+  var can = document.createElement('button'); can.className='px-3 py-2 bg-gray-100 rounded'; can.textContent='Cancel'; can.addEventListener('click', function(){ closeModal('modal-purchase'); });
+  var save = document.createElement('button'); save.className='btn-primary'; save.textContent='Save'; save.addEventListener('click', function(){ saveNewPurchaseModal(); });
+  row.appendChild(can); row.appendChild(save); card.appendChild(row);
+  modal.appendChild(card); document.body.appendChild(modal);
+}
+
+function saveNewPurchaseModal() {
+  var date = document.getElementById('m-p-date') && document.getElementById('m-p-date').value ? document.getElementById('m-p-date').value : (new Date()).toISOString().slice(0,10);
+  var amount = document.getElementById('m-p-amount') && document.getElementById('m-p-amount').value ? parseFloat(document.getElementById('m-p-amount').value) : 0;
+  var supplier = document.getElementById('m-p-supplier') && document.getElementById('m-p-supplier').value ? document.getElementById('m-p-supplier').value : '';
+  var note = document.getElementById('m-p-note') && document.getElementById('m-p-note').value ? document.getElementById('m-p-note').value : '';
+  if(isNaN(amount) || amount <= 0){ showToast('Enter amount'); return; }
+  var rec = { purchase_id: genId('purchase'), date: date, amount_spent: amount, supplier_name: supplier, note: note, created_at: (new Date()).toISOString() };
+  state.purchases.push(rec); persist(); closeModal('modal-purchase'); showToast('Purchase saved'); render();
+}
+function deletePurchase(id) { var out=[]; for(var i=0;i<state.purchases.length;i++){ if(state.purchases[i].purchase_id !== id) out.push(state.purchases[i]); } state.purchases = out; persist(); showToast('Purchase deleted'); render(); }
+
+/* --- Settings --- */
+function renderSettings() {
+  var cont = document.createElement('div'); cont.className='space-y-4';
+  var h = document.createElement('h3'); h.className='text-lg font-semibold'; h.textContent='Settings'; cont.appendChild(h);
+  var ci = state.settings.companyInfo || {};
+  var card = document.createElement('div'); card.className='card';
+  // company fields
+  var html = '';
+  html += '<div class="grid grid-cols-1 gap-2">';
+  html += '<label class="small-muted">Company Name</label><input id="set-name" class="w-full p-2 border rounded" value="'+(ci.name||'')+'"/>';
+  html += '<label class="small-muted">Address</label><input id="set-address" class="w-full p-2 border rounded" value="'+(ci.address||'')+'"/>';
+  html += '<div class="grid grid-cols-2 gap-2"><div><label class="small-muted">Phone 1</label><input id="set-phone" class="w-full p-2 border rounded" value="'+(ci.phone||'')+'"/></div><div><label class="small-muted">Phone 2</label><input id="set-phone2" class="w-full p-2 border rounded" value="'+(ci.phone2||'')+'"/></div></div>';
+  html += '<label class="small-muted">Email</label><input id="set-email" class="w-full p-2 border rounded" value="'+(ci.email||'')+'"/>';
+  html += '<label class="small-muted">Instagram</label><input id="set-insta" class="w-full p-2 border rounded" value="'+(ci.instagram||'')+'"/>';
+  html += '<label class="small-muted">FSSAI</label><input id="set-fssai" class="w-full p-2 border rounded" value="'+(ci.fssai||'')+'"/>';
+  html += '</div>';
+  html += '<div class="flex gap-2 justify-end mt-3"><button id="settings-cancel" class="px-3 py-2 bg-gray-100 rounded">Cancel</button><button id="settings-save" class="btn-primary">Save</button></div>';
+  card.innerHTML = html;
+  cont.appendChild(card);
+
+  // QR card
+  var qrCard = document.createElement('div'); qrCard.className='card';
+  var qrInner = '<div class="font-semibold mb-2">QR Uploads & Visibility</div>';
+  qrInner += '<label class="small-muted">UPI QR</label><input type="file" id="set-upi" accept="image/*" />';
+  qrInner += '<label class="small-muted">Instagram QR</label><input type="file" id="set-insta-qr" accept="image/*" />';
+  // new independent toggles
+  qrInner += '<label class="inline-flex items-center mt-2"><input type="checkbox" id="set-show-upi" class="mr-2" ' + (state.settings.show_upi_qr ? 'checked' : '') + ' />Show Payment QR on Invoice</label>';
+  qrInner += '<label class="inline-flex items-center mt-2"><input type="checkbox" id="set-show-insta" class="mr-2" ' + (state.settings.show_insta_qr ? 'checked' : '') + ' />Show Instagram QR on Invoice</label>';
+  qrInner += '<div id="qr-preview" class="flex gap-3 mt-2"></div>';
+  qrInner += '<div class="flex gap-2 justify-end mt-3"><button id="save-qr" class="btn-primary">Save QR Settings</button></div>';
+  qrCard.innerHTML = qrInner;
+  cont.appendChild(qrCard);
+
+  setTimeout(function(){
+    var btnSave = document.getElementById('settings-save'); if(btnSave) btnSave.addEventListener('click', saveCompanySettings);
+    var btnCancel = document.getElementById('settings-cancel'); if(btnCancel) btnCancel.addEventListener('click', function(){ render(); });
+    var upi = document.getElementById('set-upi'); var insta = document.getElementById('set-insta-qr');
+    if(upi) upi.addEventListener('change', function(e){ handleQrFile(e, 'upi'); });
+    if(insta) insta.addEventListener('change', function(e){ handleQrFile(e, 'insta'); });
+    var saveQr = document.getElementById('save-qr'); if(saveQr) saveQr.addEventListener('click', saveQrSettings);
+    showQrPreview();
+  }, 20);
+
+  return cont;
+}
+
+function handleQrFile(ev, which) {
+  var f = ev.target.files && ev.target.files[0]; if(!f) return;
+  fileToDataUrl(f, function(data){
+    if(which === 'upi') state.settings.upi_qr = data;
+    if(which === 'insta') state.settings.insta_qr = data;
+    showQrPreview();
+  });
+}
+
+function showQrPreview() {
+  var box = document.getElementById('qr-preview'); if(!box) return; box.innerHTML = '';
+  if(state.settings.upi_qr){ var i1 = document.createElement('img'); i1.src = state.settings.upi_qr; i1.style.width='80px'; i1.style.height='80px'; i1.className='qr-thumb'; box.appendChild(i1); }
+  if(state.settings.insta_qr){ var i2 = document.createElement('img'); i2.src = state.settings.insta_qr; i2.style.width='80px'; i2.style.height='80px'; i2.className='qr-thumb'; box.appendChild(i2); }
+}
+
+function saveQrSettings(){
+  var upiChk = document.getElementById('set-show-upi'); var instaChk = document.getElementById('set-show-insta');
+  state.settings.show_upi_qr = upiChk && upiChk.checked ? true : false;
+  state.settings.show_insta_qr = instaChk && instaChk.checked ? true : false;
+  // keep backward-compatible show_qrs too (if either is true, set show_qrs true)
+  state.settings.show_qrs = !!(state.settings.show_upi_qr || state.settings.show_insta_qr);
+  persist(); showToast('QR settings saved'); render();
+}
+
+function saveCompanySettings(){
+  if(!state.settings.companyInfo) state.settings.companyInfo = {};
+  var getVal = function(id){ var el = document.getElementById(id); return el && el.value ? el.value.trim() : ''; };
+  var v;
+  v = getVal('set-name'); state.settings.companyInfo.name = v || state.settings.companyInfo.name || '';
+  v = getVal('set-address'); state.settings.companyInfo.address = v || state.settings.companyInfo.address || '';
+  v = getVal('set-phone'); state.settings.companyInfo.phone = v || state.settings.companyInfo.phone || '';
+  v = getVal('set-phone2'); state.settings.companyInfo.phone2 = v || state.settings.companyInfo.phone2 || '';
+  v = getVal('set-email'); state.settings.companyInfo.email = v || state.settings.companyInfo.email || '';
+  v = getVal('set-insta'); state.settings.companyInfo.instagram = v || state.settings.companyInfo.instagram || '';
+  v = getVal('set-fssai'); state.settings.companyInfo.fssai = v || state.settings.companyInfo.fssai || '';
+  persist(); showToast('Company info saved'); render();
+}
+
+/* --- utilities --- */
+function fileToDataUrl(file, cb) {
+  var reader = new FileReader();
+  reader.onload = function(){ cb(reader.result); };
+  reader.onerror = function(){ cb(null); };
+  reader.readAsDataURL(file);
+}
+
+function closeModal(id) { var el = document.getElementById(id); if(el && el.parentNode) el.parentNode.removeChild(el); }
+
+/* --- Boot --- */
+document.addEventListener('DOMContentLoaded', function(){
+  try{ render(); } catch(e){ console.error(e); alert('App failed to start: ' + (e && e.message ? e.message : e)); }
+});
+</script>
 </body>
 </html>
+```
